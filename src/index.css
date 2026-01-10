@@ -1,0 +1,36 @@
+:root {
+  /* Cyberpunk / Dark Mode Palette */
+  --bg: #030014;
+  /* Deep void purple */
+  --bg-elevated: rgba(17, 24, 39, 0.7);
+  /* Translucent dark card */
+  --accent: #00f3ff;
+  /* Neon Cyan */
+  --accent-soft: rgba(0, 243, 255, 0.15);
+  --accent-secondary: #a855f7;
+  /* Neon Purple */
+  --text: #f8fafc;
+  /* High contrast white */
+  --text-muted: #94a3b8;
+  /* Soft blue-gray */
+  --radius-xl: 999px;
+  --radius-lg: 24px;
+  --shadow-soft: 0 20px 60px rgba(0, 0, 0, 0.6);
+  --shadow-glow: 0 0 50px rgba(168, 85, 247, 0.25);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif;
+  /* Deep space gradient */
+  background: radial-gradient(circle at 15% 15%, #1a103c 0%, #030014 60%, #000000 100%);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}

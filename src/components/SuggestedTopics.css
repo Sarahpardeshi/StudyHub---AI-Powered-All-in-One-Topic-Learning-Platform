@@ -1,0 +1,26 @@
+.suggested-root {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.suggested-chip {
+  min-width: 160px;
+  padding: 10px 14px;
+  border-radius: 18px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  box-shadow: 0 12px 30px rgba(148, 163, 184, 0.3);
+  font-size: 13px;
+  color: #111827;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 160ms ease-out, box-shadow 160ms ease-out, border-color 160ms ease-out, background 160ms ease-out;
+}
+
+.suggested-chip:hover {
+  transform: translateY(-2px);
+  border-color: #a855f7;
+  box-shadow: 0 18px 40px rgba(129, 140, 248, 0.4);
+  background: linear-gradient(135deg, #f9fafb, #ffffff);
+}

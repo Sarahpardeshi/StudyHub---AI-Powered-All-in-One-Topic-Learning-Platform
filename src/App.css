@@ -1,0 +1,47 @@
+.app-layout {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  background-color: #343541;
+}
+
+.app-main {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  /* Each page manages its own scroll usually */
+  background: #343541;
+  /* Default, pages can override */
+}
+
+/* Auth Pages are handled separately in their components */
+.loading-screen {
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: #343541;
+}
+
+.sidebar-open-btn {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 100;
+  background: rgba(32, 33, 35, 0.8);
+  color: white;
+  border: 1px solid #565869;
+  border-radius: 4px;
+  padding: 8px 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.sidebar-open-btn:hover {
+  background: #2a2b32;
+}

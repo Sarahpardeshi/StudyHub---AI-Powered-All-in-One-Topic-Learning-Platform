@@ -1,0 +1,950 @@
+/* Topic Page - Original Glass/Gradient Theme (Restored) */
+
+.tp-root {
+  min-height: 100vh;
+  padding: 40px 24px;
+  background: transparent;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Inter", sans-serif;
+  color: #ffffff;
+  position: relative;
+}
+
+/* Re-use Landing Page Orbs */
+.lp-bg-orb {
+  position: absolute;
+  width: 520px;
+  height: 520px;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.35;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.lp-bg-orb--left {
+  background: radial-gradient(circle, #4f46e5, transparent 60%);
+  top: -120px;
+  left: -140px;
+}
+
+.lp-bg-orb--right {
+  background: radial-gradient(circle, #a855f7, transparent 60%);
+  bottom: -160px;
+  right: -180px;
+}
+
+.tp-shell {
+  position: relative;
+  z-index: 1;
+  /* Increased width for better space usage */
+  max-width: 1800px;
+  width: 95%;
+  padding: 60px;
+  border-radius: 24px;
+  /* Professional curvature */
+
+  /* Refined Glassmorphism */
+  background: rgba(18, 18, 20, 0.75);
+  /* Deeper, more opaque dark */
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.4);
+  /* Stronger, softer shadow */
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  /* Ultra-thin border */
+  backdrop-filter: blur(12px);
+}
+
+.tp-header {
+  margin-bottom: 40px;
+}
+
+.tp-title {
+  margin: 0;
+  font-size: 38px;
+  font-weight: 800;
+  color: #fff;
+  text-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+}
+
+/* Summary Tile */
+.tp-back-btn {
+  position: absolute;
+  top: 30px;
+  left: 50px;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 24px;
+  padding: 0;
+  cursor: pointer;
+  transition: all 0.2s;
+  z-index: 10;
+}
+
+.tp-back-btn:hover {
+  background: transparent;
+  color: #fff;
+  transform: translateX(-4px);
+}
+
+.tp-summary-tile {
+  margin-bottom: 30px;
+  min-height: 180px;
+  /* Increased vertical frame */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  cursor: default;
+  /* Keep it interactive-looking but maybe default cursor if not clickable? User asked for hover so keep standard tile hover */
+  cursor: pointer;
+  /* User implies it should glow like others, so pointer is good or just hover state */
+}
+
+/* Ensure text inside summary tile handles overflow gracefully */
+.tp-summary-text {
+  font-size: 15px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0;
+  display: -webkit-box;
+  line-clamp: 4;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Grid Tiles */
+.tp-grid {
+  margin-top: 40px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+.tp-tile {
+  background: rgba(255, 255, 255, 0.03);
+  /* Translucent */
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 24px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  /* Professional ease */
+  backdrop-filter: blur(0px);
+  /* Clean look */
+}
+
+.tp-tile:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(168, 85, 247, 0.5);
+  /* Purple tint */
+  box-shadow: 0 0 30px rgba(168, 85, 247, 0.2), 0 12px 24px rgba(0, 0, 0, 0.3);
+  /* Glow + Depth */
+}
+
+.tp-tile h2 {
+  margin: 0 0 8px;
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.tp-tile p {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* Focused Layout Adjustments */
+.tp-mode-focus .tp-header {
+  margin-bottom: 10px;
+  /* Reduced from 40px */
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.tp-mode-focus .tp-title {
+  font-size: 24px;
+  /* Smaller title */
+  margin: 0;
+}
+
+.tp-mode-focus .tp-subtitle {
+  display: none;
+  /* Hide subtitle to save space */
+}
+
+/* Focused View */
+.tp-focus-layout {
+  margin-top: 0;
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 10px;
+  height: calc(100vh - 140px);
+  /* Much taller, now that header is small */
+}
+
+.tp-focus-main {
+  background: rgba(32, 33, 35, 0.6);
+  /* Darker glass */
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 15px 20px 20px 20px;
+  /* Added bottom padding */
+  /* Reduced top/bottom padding */
+  display: flex;
+  flex-direction: column;
+  backdrop-filter: blur(20px);
+  overflow: hidden;
+  /* Header fixed, content scrolls */
+}
+
+.tp-focus-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  /* Reduced margin */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 8px;
+  /* Compact header */
+  flex-shrink: 0;
+}
+
+/* Scrollable Content Containers */
+/* Scrollable Content Containers */
+.tp-books-list,
+.tp-sources-block,
+.tp-video-layout {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 10px;
+  /* Space for scrollbar */
+}
+
+/* AI Notes Specific Layout */
+.tp-notes-block {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  /* Crucial for nested flex scroll */
+}
+
+.tp-notes-interface {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  /* Contains scroller + footer */
+  min-height: 0;
+}
+
+.tp-notes-scroller {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 10px;
+  margin-bottom: 20px;
+}
+
+.tp-chat-sticky-footer {
+  flex-shrink: 0;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 30px;
+  padding: 6px 8px 6px 20px;
+  /* Left padding for text, tight right for button */
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  transition: border-color 0.2s;
+}
+
+.tp-chat-sticky-footer:focus-within {
+  border-color: rgba(168, 85, 247, 0.5);
+}
+
+.tp-chat-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: #fff;
+  outline: none;
+  font-size: 14px;
+  height: 100%;
+}
+
+.tp-chat-input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.tp-chat-form {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.tp-chat-send {
+  background: linear-gradient(135deg, #a855f7, #d946ef);
+  border: none;
+  color: white;
+  border-radius: 20px;
+  padding: 10px 20px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 13px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 10px rgba(168, 85, 247, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.tp-chat-send:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0 20px rgba(217, 70, 239, 0.6);
+  /* Strong Pink/Purple Glow */
+}
+
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.tp-focus-close {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.7);
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tp-focus-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border-color: #fff;
+}
+
+.tp-focus-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #818cf8;
+  /* Indigo accent */
+}
+
+/* Sidebar in Focus */
+.tp-sidebar-tile {
+  background: rgba(255, 255, 255, 0.07);
+  /* Brighter glass */
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  /* Distinct border */
+  border-radius: 12px;
+  padding: 16px;
+  width: 100%;
+  text-align: left;
+  margin-bottom: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.tp-sidebar-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 4px;
+}
+
+.tp-sidebar-sub {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+  /* Muted secondary text */
+}
+
+.tp-sidebar-tile:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: #22d3ee;
+  /* Cyan Pop */
+  box-shadow: 0 0 15px rgba(34, 211, 238, 0.3);
+  /* Neon Glow */
+}
+
+.tp-sidebar-summary {
+  cursor: default;
+  margin-bottom: 20px;
+  /* Extra space below summary */
+  border-color: rgba(255, 255, 255, 0.2);
+  /* Slightly more visible by default */
+}
+
+.tp-sidebar-summary:hover {
+  /* Keep the glow but maybe less aggressive transform? */
+  transform: none;
+  cursor: default;
+}
+
+.tp-sidebar-tile:hover .tp-sidebar-sub {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.tp-notes-markdown {
+  color: #e0e0e0;
+}
+
+.tp-notes-markdown h1,
+.tp-notes-markdown h2 {
+  color: #fff;
+}
+
+.tp-save-btn {
+  background: linear-gradient(135deg, #6366f1, #a855f7);
+  border: none;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+  transition: transform 0.2s;
+}
+
+.tp-save-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 20px rgba(168, 85, 247, 0.6);
+}
+
+.tp-loading {
+  color: #a855f7;
+  font-weight: bold;
+  margin-bottom: 15px;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 0.6;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0.6;
+  }
+}
+
+/* Chat History */
+.tp-chat-history {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 20px;
+  padding-bottom: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 20px;
+}
+
+.tp-chat-msg {
+  padding: 12px 16px;
+  border-radius: 12px;
+  max-width: 85%;
+  line-height: 1.5;
+  font-size: 14px;
+}
+
+.tp-chat-msg--user {
+  align-self: flex-end;
+  /* Right align */
+  background: rgba(168, 85, 247, 0.2);
+  /* Purple tint */
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  color: #fff;
+  border-bottom-right-radius: 2px;
+}
+
+.tp-chat-msg--model {
+  align-self: flex-start;
+  /* Left align (default) */
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #e2e8f0;
+  border-bottom-left-radius: 2px;
+}
+
+/* Premium Suggestions UI */
+.tp-notes-suggestions {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tp-notes-suggestions-label {
+  display: block;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 12px;
+  font-weight: 600;
+}
+
+.tp-notes-suggestion-chip {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #e2e8f0;
+  padding: 8px 16px;
+  margin-right: 10px;
+  margin-bottom: 10px;
+  border-radius: 20px;
+  /* Pill shape */
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(5px);
+  display: inline-block;
+}
+
+.tp-notes-suggestion-chip:hover {
+  background: rgba(168, 85, 247, 0.15);
+  /* Subtle purple tint */
+  border-color: rgba(168, 85, 247, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.2);
+  color: #fff;
+
+}
+
+.tp-scroll-btn {
+  position: absolute;
+  bottom: 80px;
+  /* Above the input box */
+  left: 50%;
+  transform: translateX(-50%);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #343541;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s;
+  z-index: 10;
+}
+
+.tp-scroll-btn:hover {
+  background: #40414f;
+  border-color: #fff;
+}
+
+/* YouTube Section Styles */
+.tp-video-player-wrap {
+  position: relative;
+  width: 100%;
+  padding-bottom: 45%;
+  /* 16:9 Aspect Ratio */
+  background: black;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  /* 
+     Smart Constraint:
+     1. Cap width at 1000px (user preference for wide video).
+     2. But calculate max-width based on HEIGHT availability.
+        Max Height desired = 100vh - 250px (Header + Footer space).
+        Max Width = (100vh - 250px) * 1.777 (16:9 ratio).
+     This ensures it shrinks vertically if the screen is short, but stays wide if tall.
+  */
+  max-width: min(1000px, calc((100vh - 250px) * 1.778));
+  margin-left: auto;
+  /* Center horizontally */
+  margin-right: auto;
+}
+
+.tp-video-player-wrap iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.tp-video-focus-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+}
+
+.tp-video-focus-channel {
+  font-size: 14px;
+  color: #9ca3af;
+  margin: 4px 0 0;
+}
+
+.tp-videos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  /* Side-by-side Grid */
+  gap: 20px;
+  margin-top: 20px;
+  padding-bottom: 20px;
+}
+
+.tp-video-card {
+  display: flex;
+  flex-direction: column;
+  /* Vertical card layout */
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s;
+  align-items: stretch;
+  height: 100%;
+}
+
+.tp-video-card:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-4px);
+}
+
+.tp-video-card--active {
+  background: rgba(168, 85, 247, 0.15);
+  border-color: #a855f7;
+}
+
+.tp-video-card img {
+  width: 100%;
+  height: 135px;
+  /* Larger thumbnail for grid */
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.tp-video-card-body {
+  flex: 1;
+}
+
+.tp-video-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #e5e7eb;
+  margin-bottom: 4px;
+  display: -webkit-box;
+  line-clamp: 2;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.tp-video-channel {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+/* Sources Layout - Card Style */
+.tp-sources-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.tp-source-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.2s;
+  position: relative;
+  min-height: 120px;
+}
+
+.tp-source-card:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: #22d3ee;
+  /* Cyan hover like sidebar */
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(34, 211, 238, 0.1);
+}
+
+.tp-source-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex: 1;
+}
+
+.tp-source-main {
+  text-decoration: none;
+  flex: 1;
+  padding-right: 10px;
+}
+
+.tp-source-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+.tp-source-snippet {
+  font-size: 13px;
+  color: #9ca3af;
+  line-height: 1.5;
+  display: -webkit-box;
+  line-clamp: 3;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.tp-source-domain {
+  margin-top: 12px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: rgba(255, 255, 255, 0.4);
+  font-weight: 600;
+}
+
+/* Small Save Button Adjustment */
+.tp-save-btn-small {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.tp-save-btn-small:hover {
+  background: #a855f7;
+  border-color: #a855f7;
+  color: #fff;
+}
+
+/* Reference Books - Bookshelf Grid */
+.tp-books-ul {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 24px;
+  margin-top: 20px;
+  list-style: none;
+  padding: 0;
+}
+
+.tp-book-item {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  /* Ensure uniform height */
+  min-height: 380px;
+  /* Tall cards */
+  transition: all 0.2s;
+  position: relative;
+}
+
+.tp-book-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: #22d3ee;
+  transform: translateY(-4px);
+  box-shadow: 0 4px 15px rgba(34, 211, 238, 0.15);
+}
+
+.tp-book-card-inner {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.tp-book-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 20px;
+}
+
+.tp-book-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 8px;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.tp-book-author {
+  font-size: 14px;
+  color: #9ca3af;
+  margin-bottom: 4px;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.tp-book-source {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 12px;
+}
+
+.tp-book-actions {
+  margin-top: auto;
+  /* Push to bottom of info section */
+  display: flex;
+  gap: 10px;
+  padding-top: 10px;
+}
+
+.tp-book-view-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(34, 211, 238, 0.1);
+  color: #22d3ee;
+  text-decoration: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid rgba(34, 211, 238, 0.3);
+  transition: all 0.2s;
+  height: 32px;
+  /* Fixed height for alignment */
+}
+
+.tp-book-view-btn:hover {
+  background: #22d3ee;
+  color: #1a1b26;
+}
+
+.tp-book-cover-wrap {
+  margin-top: auto;
+  /* Push to bottom */
+  display: flex;
+  justify-content: center;
+}
+
+.tp-book-cover {
+  width: 100px;
+  /* Specific width for book look */
+  height: 150px;
+  object-fit: cover;
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.tp-book-cover-placeholder {
+  width: 100px;
+  height: 150px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+/* Flashcards Integration Styles */
+
+/* 
+   When Flashcards are active, we widen the sidebar column 
+   to accommodate the 400px flashcard, squeezing the main content slightly.
+*/
+.tp-shell.tp-mode-flashcards .tp-focus-layout {
+  grid-template-columns: 1fr 450px;
+  /* Wider sidebar for flashcards */
+  transition: grid-template-columns 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.tp-flashcards-sidebar {
+  height: 100%;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Ensure the flashcard deck fits */
+.tp-flashcards-sidebar .fc-deck-container {
+  margin-top: 10px;
+}
+
+/* Adjust main content transition */
+.tp-focus-layout {
+  transition: grid-template-columns 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+/* Responsive adjustment for laptop screens */
+@media (max-width: 1200px) {
+  .tp-shell.tp-mode-flashcards .tp-focus-layout {
+    grid-template-columns: 1fr 380px;
+    /* Slightly tighter */
+  }
+
+  .tp-flashcards-sidebar .fc-card-container {
+    max-width: 100%;
+    /* Let it fill available width */
+    height: 280px;
+    /* Slightly shorter */
+  }
+}
+
+@media (max-width: 900px) {
+
+  /* Stack layout on small screens */
+  .tp-shell.tp-mode-flashcards .tp-focus-layout {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
+  }
+
+  .tp-flashcards-sidebar {
+    height: auto;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 20px;
+    margin-top: 20px;
+  }
+}
