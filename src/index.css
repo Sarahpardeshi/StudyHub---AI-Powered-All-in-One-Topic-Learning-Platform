@@ -1,22 +1,41 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 :root {
-  /* Cyberpunk / Dark Mode Palette */
-  --bg: #030014;
-  /* Deep void purple */
-  --bg-elevated: rgba(17, 24, 39, 0.7);
-  /* Translucent dark card */
-  --accent: #00f3ff;
-  /* Neon Cyan */
-  --accent-soft: rgba(0, 243, 255, 0.15);
-  --accent-secondary: #a855f7;
-  /* Neon Purple */
-  --text: #f8fafc;
-  /* High contrast white */
-  --text-muted: #94a3b8;
-  /* Soft blue-gray */
-  --radius-xl: 999px;
-  --radius-lg: 24px;
-  --shadow-soft: 0 20px 60px rgba(0, 0, 0, 0.6);
-  --shadow-glow: 0 0 50px rgba(168, 85, 247, 0.25);
+  /* Premium AI Palette - Deep Indigo to Vibrant Purple */
+  --primary: #4F46E5;
+  --primary-hover: #4338CA;
+  --primary-soft: rgba(79, 70, 229, 0.1);
+  --secondary: #8B5CF6;
+  --accent: #06B6D4;
+
+  /* Neutral Palette - Slate/Navy shades for premium feel */
+  --bg-main: #FFFFFF;
+  --bg-sidebar: #F8FAFC;
+  --bg-card: #FFFFFF;
+  --text-main: #0F172A;
+  --text-muted: #64748B;
+  --text-inverse: #FFFFFF;
+
+  /* Dark Mode Overrides (Can be used as separate tokens) */
+  --bg-dark: #020617;
+  --card-dark: #0F172A;
+
+  /* Glassmorphism */
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.3);
+  --glass-blur: blur(16px);
+
+  /* Shadows & Radius */
+  --radius-xl: 24px;
+  --radius-lg: 16px;
+  --radius-md: 12px;
+  --shadow-premium: 0 10px 25px -5px rgba(0, 0, 0, 0.04), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+  --shadow-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+
+  /* Borders */
+  --border-light: #E2E8F0;
 }
 
 *,
@@ -27,10 +46,166 @@
 
 body {
   margin: 0;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif;
-  /* Deep space gradient */
-  background: radial-gradient(circle at 15% 15%, #1a103c 0%, #030014 60%, #000000 100%);
-  color: var(--text);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background-color: var(--bg-sidebar);
+  color: var(--text-main);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   min-height: 100vh;
+}
+
+/* Global Transition */
+* {
+  transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Glass Utility Classes */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Custom Scrollbar - Premium Aesthetic (Subtle & Floating) */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+  /* Makes scrollbar feel less intrusive */
+}
+
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  /* Muted Slate */
+  border-radius: 20px;
+  border: 1px solid transparent;
+  /* Gives a little breathing room */
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-soft);
+}
+
+/* Firefox Support */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #CBD5E1 var(--bg-sidebar);
+}
+
+/* Premium Markdown & Content Styling */
+.tp-markdown {
+  font-family: 'Inter', sans-serif;
+  line-height: 1.8;
+  color: #334155;
+  font-size: 1.05rem;
+}
+
+.tp-markdown p {
+  margin-bottom: 1.25rem;
+  white-space: pre-wrap;
+  /* Preserve line breaks from AI */
+}
+
+.tp-markdown h1,
+.tp-markdown h2,
+.tp-markdown h3 {
+  font-family: 'Outfit', sans-serif;
+  color: #0F172A;
+  font-weight: 800;
+  margin: 2.5rem 0 1rem;
+  line-height: 1.2;
+}
+
+.tp-markdown h1 {
+  font-size: 2.25rem;
+  border-bottom: 2px solid #F1F5F9;
+  padding-bottom: 0.5rem;
+}
+
+.tp-markdown h2 {
+  font-size: 1.75rem;
+  border-bottom: 1px solid #F1F5F9;
+  padding-bottom: 0.25rem;
+}
+
+.tp-markdown h3 {
+  font-size: 1.35rem;
+}
+
+.tp-markdown ul,
+.tp-markdown ol {
+  margin: 1.25rem 0;
+  padding-left: 1.5rem;
+  list-style-position: outside;
+}
+
+.tp-markdown li {
+  margin-bottom: 0.75rem;
+  padding-left: 0.5rem;
+}
+
+.tp-markdown ul li {
+  list-style-type: disc;
+}
+
+.tp-markdown ol li {
+  list-style-type: decimal;
+}
+
+.tp-markdown strong {
+  color: #1E293B;
+  font-weight: 700;
+}
+
+.tp-markdown blockquote {
+  margin: 2rem 0;
+  padding: 1rem 1.5rem;
+  background: #F8FAFC;
+  border-left: 4px solid var(--primary);
+  border-radius: 0 12px 12px 0;
+  font-style: italic;
+  color: #475569;
+}
+
+.tp-markdown hr {
+  margin: 3rem 0;
+  border: 0;
+  border-top: 2px solid #F1F5F9;
+}
+
+.tp-markdown code {
+  background: #F1F5F9;
+  padding: 0.2rem 0.4rem;
+  border-radius: 6px;
+  font-family: 'Fira Code', monospace;
+  font-size: 0.9em;
+  color: var(--primary);
+}
+
+.tp-markdown pre {
+  background: #0F172A;
+  color: #F8FAFC;
+  padding: 1.5rem;
+  border-radius: 12px;
+  overflow-x: auto;
+  margin: 1.5rem 0;
+}
+
+.tp-markdown pre code {
+  background: transparent;
+  padding: 0;
+  color: inherit;
+  font-size: 0.95rem;
 }

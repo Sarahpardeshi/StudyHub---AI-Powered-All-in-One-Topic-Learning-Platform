@@ -4,11 +4,15 @@ export async function fetchTopicSummary(topic) {
     topic
   )}`; // [web:125]
 
-  const res = await fetch(url);
-  if (!res.ok) {
-    throw new Error("Failed to load summary");
-  }
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return null;
 
-  const data = await res.json();
-  return data.extract || "";
+    const data = await res.json();
+    return data.extract || null;
+  } catch (err) {
+    console.error("fetchTopicSummary error:", err);
+    return null;
+  }
 }
+

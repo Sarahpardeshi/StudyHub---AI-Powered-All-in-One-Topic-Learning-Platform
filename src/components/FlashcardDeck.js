@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import '../pages/Flashcards.css';
 
 const Flashcard = ({ card, onFlip, isFlipped }) => {
+    if (!card) return null;
     return (
         <div className="fc-card-container" onClick={onFlip}>
             <div className={`fc-card ${isFlipped ? 'flipped' : ''}`}>
@@ -35,7 +36,7 @@ const FlashcardDeck = ({ cards = [] }) => {
         setIsFlipped(false);
         setTimeout(() => {
             setCurrentIndex((prev) => (prev + 1) % cards.length);
-        }, 200); // Wait for flip reset logic if needed, or just instant
+        }, 200);
     };
 
     const handlePrev = () => {
@@ -67,7 +68,7 @@ const FlashcardDeck = ({ cards = [] }) => {
                 >
                     ←
                 </button>
-                <span className="fc-progress">Card {currentIndex + 1} of {cards.length}</span>
+                <span className="fc-progress">{currentIndex + 1} / {cards.length}</span>
                 <button
                     className="fc-nav-btn"
                     onClick={handleNext}

@@ -1,13 +1,15 @@
 import React, { useState } from "react";
-import { GoogleLogin } from "@react-oauth/google";
 import { useAuth } from "../context/AuthContext.js";
+import { GoogleLogin } from "@react-oauth/google";
 import { loginUser, googleLogin } from "../services/authApi.js";
+import { Eye, EyeOff } from "lucide-react";
 import "./Auth.css";
 
 function LoginPage({ onSwitchToRegister }) {
     const { login } = useAuth();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState("");
 
     const handleSubmit = async (e) => {
@@ -22,57 +24,93 @@ function LoginPage({ onSwitchToRegister }) {
     };
 
     const handleGoogleSuccess = async (credentialResponse) => {
+        setError("");
         try {
             const data = await googleLogin(credentialResponse.credential);
             login(data.token, data.user);
         } catch (err) {
-            setError("Google login failed. Try again.");
+            setError(err.message);
         }
     };
 
     return (
-        <div className="auth-box">
-            <h2>Welcome Back</h2>
+        <div className="auth-form-wrapper">
+
+            <div className="auth-form-header">
+                <h2>Welcome Back</h2>
+                <p>Resume your deep study session in seconds.</p>
+            </div>
+
             <form onSubmit={handleSubmit}>
                 <div className="auth-field">
-                    <label>Email</label>
+                    <label>Email Address</label>
                     <input
                         type="email"
+                        placeholder="name@university.edu"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
                     />
                 </div>
                 <div className="auth-field">
-                    <label>Password</label>
-                    <input
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                    />
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <label>Password</label>
+                        <button type="button" className="link-btn" style={{ fontSize: '0.75rem', marginBottom: '8px' }}>Forgot?</button>
+                    </div>
+                    <div className="password-input-wrapper">
+                        <input
+                            type={showPassword ? "text" : "password"}
+                            placeholder="••••••••"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            required
+                        />
+                        <button
+                            type="button"
+                            className="password-toggle"
+                            onClick={() => setShowPassword(!showPassword)}
+                            aria-label={showPassword ? "Hide password" : "Show password"}
+                        >
+                            {showPassword ? <Eye size={18} /> : <EyeOff size={18} />}
+                        </button>
+                    </div>
                 </div>
-                {error && <p className="auth-error">{error}</p>}
-                <button type="submit" className="auth-btn">
-                    Log In
+
+                <div className="auth-checkbox-row">
+                    <input type="checkbox" id="keep-logged" />
+                    <label htmlFor="keep-logged">Keep me logged in for 30 days</label>
+                </div>
+
+                {error && <p className="auth-error" style={{ color: '#ef4444', fontSize: '0.85rem', marginBottom: '1rem' }}>{error}</p>}
+
+                <button type="submit" className="auth-btn-primary" style={{ backgroundColor: 'var(--primary)' }}>
+                    Enter Workspace →
                 </button>
             </form>
 
-            <div className="auth-divider">OR</div>
-            <div className="google-btn-wrapper">
-                <GoogleLogin
-                    onSuccess={handleGoogleSuccess}
-                    onError={() => setError("Google Login Failed")}
-                    theme="filled_black"
-                    shape="rectangular"
-                />
+            <div className="auth-social-divider">
+                <span>OR CONTINUE WITH</span>
             </div>
 
-            <p className="auth-footer">
-                Don't have an account?{" "}
-                <button className="link-btn" onClick={onSwitchToRegister}>
-                    Sign up
+            <div className="auth-social-grid">
+                <div className="google-login-wrapper">
+                    <GoogleLogin
+                        onSuccess={handleGoogleSuccess}
+                        onError={() => setError("Google Login Failed")}
+                        useOneTap
+                        theme="outline"
+                        shape="pill"
+                    />
+                </div>
+                <button className="auth-social-btn">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/0/05/Facebook_Logo_%282019%29.png" alt="Facebook" />
+                    Facebook
                 </button>
+            </div>
+
+            <p className="auth-footer-text">
+                Don't have an account?
+                <button onClick={onSwitchToRegister}>Create Account</button>
             </p>
         </div>
     );

@@ -1,24 +1,15 @@
 import React, { useEffect, useState } from "react";
 import "./Sidebar.css";
 import { useAuth } from "../context/AuthContext.js";
+import { Plus, ChevronLeft, Clock, MoreHorizontal } from "lucide-react";
+
 // A simple fetch for history - in a real app, maybe extract to a hook
 const API_URL = "http://localhost:5006/api";
 
-function Sidebar({ isOpen, toggleSidebar, onSelectTopic, onNewChat, onOpenLibrary }) {
+function Sidebar({ isOpen, toggleSidebar, onSelectTopic, onSelectHistoryItem, onNewChat, onOpenLibrary, history, setHistory }) {
     const { user, logout, token } = useAuth();
-    const [history, setHistory] = useState([]);
-
-    useEffect(() => {
-        if (!token) return;
-        fetch(`${API_URL}/history`, {
-            headers: { Authorization: `Bearer ${token}` },
-        })
-            .then((res) => res.json())
-            .then((data) => {
-                if (Array.isArray(data)) setHistory(data);
-            })
-            .catch(console.error);
-    }, [token]);
+    console.log("Sidebar Debug - History prop:", history);
+    console.log("Sidebar Debug - User:", user?.email, "Token exists:", !!token);
 
     const handleRename = async (id, oldTopic) => {
         const newTopic = prompt("Rename Search:", oldTopic);
@@ -29,7 +20,7 @@ function Sidebar({ isOpen, toggleSidebar, onSelectTopic, onNewChat, onOpenLibrar
                 headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
                 body: JSON.stringify({ topic: newTopic }),
             });
-            // Update local state
+            // Update local state (via prop)
             setHistory(history.map(h => h._id === id ? { ...h, topic: newTopic } : h));
         } catch (err) {
             console.error("Rename failed", err);
@@ -53,50 +44,44 @@ function Sidebar({ isOpen, toggleSidebar, onSelectTopic, onNewChat, onOpenLibrar
         <aside className={`sidebar ${!isOpen ? "closed" : ""}`}>
             <div className="sidebar-header-row">
                 <button className="new-chat-btn" onClick={onNewChat}>
-                    <span className="plus-icon">+</span> New Search
+                    <Plus size={18} className="sidebar-btn-icon" /> New Search
                 </button>
                 <button className="sidebar-close-btn" onClick={toggleSidebar} title="Close Sidebar">
-                    ❮
+                    <ChevronLeft size={20} />
                 </button>
             </div>
 
             <div className="sidebar-nav">
-                <div className="nav-label">Recent</div>
+                <div className="nav-label"><Clock size={14} style={{ marginRight: '8px' }} /> Recent</div>
                 <ul className="history-list">
-                    {history.map((item) => (
-                        <li key={item._id} className="history-item">
-                            <div className="history-link-wrap">
-                                <button className="history-btn" onClick={() => onSelectTopic(item.topic)}>
-                                    {item.topic}
-                                </button>
-                                <div className="history-menu-trigger">
-                                    <span className="dots-icon">•••</span>
-                                    <div className="history-context-menu">
-                                        <button onClick={(e) => { e.stopPropagation(); handleRename(item._id, item.topic); }}>Rename</button>
-                                        <button onClick={(e) => { e.stopPropagation(); handleDelete(item._id); }} className="danger">Delete</button>
+                    {history && history.length > 0 ? (
+                        history.map((item) => (
+                            <li key={item._id} className="history-item">
+                                <div className="history-link-wrap">
+                                    <button className="history-btn" onClick={() => onSelectHistoryItem(item)}>
+                                        {item.topic}
+                                    </button>
+                                    <div className="history-menu-trigger">
+                                        <button className="history-dots-btn">
+                                            <MoreHorizontal size={14} />
+                                        </button>
+                                        <div className="history-context-menu">
+                                            <button onClick={(e) => { e.stopPropagation(); handleRename(item._id, item.topic); }}>Rename</button>
+                                            <button onClick={(e) => { e.stopPropagation(); handleDelete(item._id); }} className="danger">Delete</button>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
+                            </li>
+                        ))
+                    ) : (
+                        <li className="history-item-empty" style={{ padding: "10px 12px", color: "var(--text-muted)", fontSize: "0.85rem" }}>
+                            No recent searches
                         </li>
-                    ))}
+                    )}
                 </ul>
             </div>
 
             <div className="sidebar-footer">
-                <button className="nav-link" onClick={onOpenLibrary}>
-                    📚 My Library
-                </button>
-                <div className="user-profile">
-                    {user?.avatar ? (
-                        <img src={user.avatar} alt="User" className="user-avatar-img" />
-                    ) : (
-                        <div className="user-avatar">{user?.username?.[0]?.toUpperCase()}</div>
-                    )}
-                    <span className="username">{user?.username}</span>
-                    <button className="logout-btn" onClick={logout} title="Logout">
-                        ⏻
-                    </button>
-                </div>
             </div>
         </aside>
     );

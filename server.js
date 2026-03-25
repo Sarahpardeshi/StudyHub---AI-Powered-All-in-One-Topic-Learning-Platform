@@ -8,6 +8,11 @@ import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { OAuth2Client } from "google-auth-library";
+import multer from "multer";
+
+import { createRequire } from "module";
+const require = createRequire(import.meta.url);
+import { PDFParse } from "pdf-parse";
 
 import { User } from "./src/models/User.js";
 import { History } from "./src/models/History.js";
@@ -16,13 +21,26 @@ import { LibraryItem } from "./src/models/LibraryItem.js";
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 5006;
+const PORT = process.env.NOTES_PORT || 5006;
 const JWT_SECRET = process.env.JWT_SECRET || "default_secret_dev";
 const client = new OAuth2Client(process.env.REACT_APP_GOOGLE_CLIENT_ID);
 
 // Middleware
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: "500mb" })); // Increased limit for larger files
+app.use(express.urlencoded({ extended: true, limit: "500mb" }));
+
+// --- File Upload Middleware ---
+const upload = multer({ storage: multer.memoryStorage() });
+
+// Request logging
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+  res.on('finish', () => {
+    console.log(`Response: ${res.statusCode}`);
+  });
+  next();
+});
 
 // Database Connection
 mongoose
@@ -35,16 +53,38 @@ const authenticateToken = (req, res, next) => {
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1]; // Bearer TOKEN
 
-  if (!token) return res.status(401).json({ error: "Access denied" });
+  if (!token) {
+    console.log("Auth Error: No token provided");
+    return res.status(401).json({ error: "Access denied" });
+  }
 
   jwt.verify(token, JWT_SECRET, (err, user) => {
-    if (err) return res.status(403).json({ error: "Invalid token" });
+    if (err) {
+      console.log("Auth Error: Invalid token", err.message);
+      return res.status(403).json({ error: "Invalid token" });
+    }
+    console.log(`Auth Success: UserID=${user.userId}`);
     req.user = user; // { userId: ... }
     next();
   });
 };
 
 // --- AUTH ROUTES ---
+
+// --- PDF Extraction Route ---
+app.post("/api/extract-pdf", authenticateToken, upload.single("file"), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: "No file uploaded" });
+    }
+    const parser = new PDFParse({ data: req.file.buffer });
+    const data = await parser.getText();
+    res.json({ text: data.text });
+  } catch (err) {
+    console.error("PDF Extraction Error:", err);
+    res.status(500).json({ error: "Failed to extract text from PDF" });
+  }
+});
 
 // Register
 app.post("/api/auth/register", async (req, res) => {
@@ -129,40 +169,70 @@ app.post("/api/auth/google", async (req, res) => {
 
 app.get("/api/history", authenticateToken, async (req, res) => {
   try {
-    const history = await History.find({ userId: req.user.userId })
+    const userId = new mongoose.Types.ObjectId(req.user.userId);
+    console.log(`Fetching history for UserID: ${userId}`);
+    const history = await History.find({ userId })
       .sort({ timestamp: -1 })
       .limit(20);
     res.json(history);
   } catch (err) {
+    console.error("Fetch History Error:", err);
     res.status(500).json({ error: "Failed to fetch history" });
   }
 });
 
 app.post("/api/history", authenticateToken, async (req, res) => {
   try {
-    const { topic } = req.body;
+    const { topic, content, suggestions, chatMessages, flashcards, quizzes } = req.body;
     if (!topic) return res.status(400).json({ error: "Topic required" });
 
-    // Optional: Avoid duplicates for same topic recently?
-    // For now, just save every search
-    const item = new History({ userId: req.user.userId, topic });
-    await item.save();
+    const userId = new mongoose.Types.ObjectId(req.user.userId);
+
+    // Look for existing item for this topic (case insensitive)
+    let item = await History.findOne({
+      userId,
+      topic: { $regex: new RegExp(`^${topic.trim()}$`, "i") }
+    });
+
+    if (item) {
+      if (content) item.content = content;
+      if (suggestions && suggestions.length > 0) item.suggestions = suggestions;
+      if (chatMessages) item.chatMessages = chatMessages;
+      if (flashcards) item.flashcards = flashcards;
+      if (quizzes) item.quizzes = quizzes;
+      item.timestamp = Date.now();
+      await item.save();
+    } else {
+      item = new History({
+        userId,
+        topic: topic.trim(),
+        content: content || "",
+        suggestions: suggestions || [],
+        chatMessages: chatMessages || [],
+        flashcards: flashcards || [],
+        quizzes: quizzes || []
+      });
+      await item.save();
+    }
     res.status(201).json(item);
   } catch (err) {
+    console.error("History Save Error:", err);
     res.status(500).json({ error: "Failed to save history" });
   }
 });
 
 app.put("/api/history/:id", authenticateToken, async (req, res) => {
   try {
-    const { topic } = req.body;
-    await History.findOneAndUpdate(
+    const { topic, content, suggestions, chatMessages, flashcards, quizzes } = req.body;
+    const item = await History.findOneAndUpdate(
       { _id: req.params.id, userId: req.user.userId },
-      { topic },
+      { $set: { topic, content, suggestions, chatMessages, flashcards, quizzes, timestamp: Date.now() } },
       { new: true }
     );
-    res.json({ message: "History updated" });
+    if (!item) return res.status(404).json({ error: "History item not found" });
+    res.json(item);
   } catch (err) {
+    console.error("History Update Error:", err);
     res.status(500).json({ error: "Failed to update history" });
   }
 });
@@ -313,11 +383,60 @@ app.get("/api/sources", async (req, res) => {
 });
 
 // ---------- EXISTING REFERENCE BOOKS ----------
+const CURATED_BOOKS = {
+  "web services": [
+    { title: "RESTful Web Services", author: "Leonard Richardson", link: "https://www.google.com/search?tbm=bks&q=RESTful+Web+Services", thumbnail: "", source: "curated" },
+    { title: "Building Microservices", author: "Sam Newman", link: "https://www.google.com/search?tbm=bks&q=Building+Microservices", thumbnail: "", source: "curated" }
+  ],
+  "react": [
+    { title: "Learning React", author: "Alex Banks, Eve Porcello", link: "https://www.google.com/search?tbm=bks&q=Learning+React", thumbnail: "", source: "curated" },
+    { title: "The Road to React", author: "Robin Wieruch", link: "https://www.google.com/search?tbm=bks&q=The+Road+to+React", thumbnail: "", source: "curated" }
+  ],
+  "javascript": [
+    { title: "Eloquent JavaScript", author: "Marijn Haverbeke", link: "https://eloquentjavascript.net/", thumbnail: "", source: "curated" },
+    { title: "You Don't Know JS", author: "Kyle Simpson", link: "https://github.com/getify/You-Dont-Know-JS", thumbnail: "", source: "curated" }
+  ]
+};
+
+async function fetchBooksFromAI(topic) {
+  const apiKey = process.env.REACT_APP_OPENROUTER_API_KEY;
+  if (!apiKey) return null;
+  try {
+    const prompt = `Generate a list of 5 real, high-quality reference books for the topic "${topic}". 
+    Return strictly a JSON array of objects with the keys: "title", "author", "link", "thumbnail", "source". 
+    - "link" should be a Google Books search URL.
+    - "thumbnail" can be empty.
+    - "source" should be "ai-recommendation".
+    No markdown formatting, raw JSON string only.`;
+
+    const resp = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "google/gemini-2.0-flash-lite-001",
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.5
+      })
+    });
+    if (!resp.ok) return null;
+    const data = await resp.json();
+    let content = data.choices?.[0]?.message?.content || "";
+    content = content.replace(/```json/g, "").replace(/```/g, "").trim();
+    const books = JSON.parse(content);
+    return Array.isArray(books) ? books : null;
+  } catch (err) {
+    console.error("AI book fallback failed:", err);
+    return null;
+  }
+}
+
 app.get("/api/reference-books", async (req, res) => {
   const topic = req.query.topic;
   if (!topic) {
     return res.status(400).json({ error: "topic query param is required" });
   }
+
+  const lowerTopic = topic.toLowerCase();
 
   try {
     const q = encodeURIComponent(`${topic} programming`);
@@ -325,13 +444,21 @@ app.get("/api/reference-books", async (req, res) => {
 
     const resp = await fetch(url);
     if (!resp.ok) {
-      return res
-        .status(502)
-        .json({ error: "Failed to fetch books from external API" });
+      console.error(`Google Books API failed with status ${resp.status}`);
+      const aiBooks = await fetchBooksFromAI(topic);
+      if (aiBooks) return res.json({ books: aiBooks, note: "AI Generated" });
+      if (CURATED_BOOKS[lowerTopic]) return res.json({ books: CURATED_BOOKS[lowerTopic], note: "Curated Fallback" });
+      const errorMsg = resp.status === 429 ? "Google Books API Quota Exceeded. Please try again later." : "Failed to fetch books from external API";
+      return res.status(resp.status === 429 ? 429 : 502).json({ error: errorMsg });
     }
 
     const json = await resp.json();
     const items = json.items || [];
+    if (items.length === 0) {
+      const aiBooks = await fetchBooksFromAI(topic);
+      if (aiBooks) return res.json({ books: aiBooks });
+      if (CURATED_BOOKS[lowerTopic]) return res.json({ books: CURATED_BOOKS[lowerTopic] });
+    }
 
     const books = items.map((item) => {
       const info = item.volumeInfo || {};
@@ -343,13 +470,13 @@ app.get("/api/reference-books", async (req, res) => {
         source: "google-books",
       };
     });
-
     return res.json({ books });
   } catch (err) {
     console.error("Error in /api/reference-books:", err);
-    return res
-      .status(500)
-      .json({ error: "Failed to load reference books" });
+    const aiBooks = await fetchBooksFromAI(topic);
+    if (aiBooks) return res.json({ books: aiBooks });
+    if (CURATED_BOOKS[lowerTopic]) return res.json({ books: CURATED_BOOKS[lowerTopic] });
+    return res.status(500).json({ error: "Failed to load reference books" });
   }
 });
 

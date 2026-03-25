@@ -1,22 +1,47 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext.js";
+import ReactMarkdown from "react-markdown";
+import {
+    LayoutGrid,
+    Lightbulb,
+    FileText,
+    Video,
+    BookOpen,
+    Globe,
+    LogOut,
+    Diamond,
+    Package
+} from "lucide-react";
 import "./LibraryPage.css";
 
 const API_URL = "http://localhost:5006/api/library";
 
+const SIDEBAR_NAV = [
+    { id: "All", label: "All Items", icon: <Diamond size={18} /> },
+    { id: "Note", label: "Smart Notes", icon: <Lightbulb size={18} /> },
+    { id: "Quiz", label: "Test Results", icon: <FileText size={18} /> },
+    { id: "Video", label: "Video Lessons", icon: <Video size={18} /> },
+    { id: "Book", label: "Reading List", icon: <BookOpen size={18} /> },
+    { id: "Source", label: "Web Sources", icon: <Globe size={18} /> }
+];
+
 function LibraryPage() {
-    const { token } = useAuth();
+    const { token, logout } = useAuth();
     const [items, setItems] = useState([]);
-    const [groupedItems, setGroupedItems] = useState({});
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [filter, setFilter] = useState("All");
+    const [viewMode, setViewMode] = useState("grid"); // grid or list
 
     // Modal State
     const [selectedNote, setSelectedNote] = useState(null);
     const [selectedVideo, setSelectedVideo] = useState(null);
+    const [selectedQuiz, setSelectedQuiz] = useState(null);
 
     useEffect(() => {
-        fetchLibrary();
+        if (token) {
+            fetchLibrary();
+        }
     }, [token]);
 
     const fetchLibrary = async () => {
@@ -24,10 +49,13 @@ function LibraryPage() {
             const response = await fetch(API_URL, {
                 headers: { Authorization: `Bearer ${token}` },
             });
+            if (response.status === 401 || response.status === 403) {
+                logout();
+                return;
+            }
             if (!response.ok) throw new Error("Failed to fetch library");
             const data = await response.json();
             setItems(data);
-            groupItems(data);
         } catch (err) {
             setError(err.message);
         } finally {
@@ -35,27 +63,19 @@ function LibraryPage() {
         }
     };
 
-    const groupItems = (libraryItems) => {
-        const groups = {};
-        libraryItems.forEach(item => {
-            const category = item.category || "General";
-            if (!groups[category]) groups[category] = [];
-            groups[category].push(item);
-        });
-        setGroupedItems(groups);
-    };
-
-    const handleDelete = async (id) => {
-        if (!window.confirm("Are you sure?")) return;
+    const handleDelete = async (e, id) => {
+        e.stopPropagation();
+        if (!window.confirm("Delete this from your library?")) return;
         try {
-            await fetch(`${API_URL}/${id}`, {
+            const res = await fetch(`${API_URL}/${id}`, {
                 method: "DELETE",
                 headers: { Authorization: `Bearer ${token}` },
             });
-            // specific update
-            const newItems = items.filter((item) => item._id !== id);
-            setItems(newItems);
-            groupItems(newItems);
+            if (res.status === 401 || res.status === 403) {
+                logout();
+                return;
+            }
+            setItems(prev => prev.filter(item => item._id !== id));
         } catch (err) {
             alert("Failed to delete item");
         }
@@ -63,213 +83,200 @@ function LibraryPage() {
 
     const NoteModal = ({ note, onClose }) => {
         if (!note) return null;
+        const noteContent = typeof note.data === 'string'
+            ? note.data
+            : (note.data.markdown || note.data.content || "");
         return (
             <div className="modal-overlay" onClick={onClose}>
                 <div className="modal-content" onClick={e => e.stopPropagation()}>
                     <button className="modal-close" onClick={onClose}>×</button>
                     <h2>{note.title}</h2>
-                    <div className="modal-body markdown-preview">
-                        {/* If we had a markdown renderer, we'd use it here. 
-                 For now, displaying as whitespace-pre-wrap text is safer/easier 
-                 unless we import ReactMarkdown again. 
-                 Since the data.markdown is raw markdown, let's just show it. 
-             */}
-                        {note.data.markdown || note.data.content || JSON.stringify(note.data)}
+                    <div className="tp-markdown">
+                        <ReactMarkdown>{noteContent}</ReactMarkdown>
                     </div>
                 </div>
             </div>
         );
     };
 
-
-    // Video Modal Component
     const VideoModal = ({ video, onClose }) => {
         if (!video) return null;
-        // Extract ID just in case, though we usually save the full URL
-        const videoId = video.data.url.split("v=")[1] || "";
+        let videoId = video.data.id || "";
+        if (!videoId && video.data.url) {
+            videoId = video.data.url.split("v=")[1] || video.data.url.split("/").pop();
+        }
         const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
-
         return (
             <div className="modal-overlay" onClick={onClose}>
-                <div className="modal-content video-modal-content" onClick={e => e.stopPropagation()}>
+                <div className="modal-content" style={{ padding: '0', overflow: 'hidden' }} onClick={e => e.stopPropagation()}>
                     <button className="modal-close" onClick={onClose}>×</button>
-                    <h2>{video.title}</h2>
-                    <div className="modal-body video-body">
+                    <div style={{ position: 'relative', paddingTop: '56.25%' }}>
                         <iframe
+                            style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
                             src={embedUrl}
                             title={video.title}
                             frameBorder="0"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                             allowFullScreen
                         ></iframe>
+                    </div>
+                    <div style={{ padding: '30px' }}>
+                        <h2>{video.title}</h2>
                     </div>
                 </div>
             </div>
         );
     };
 
-    const handleRenameCategory = async (oldCategory) => {
-        const newCategory = prompt("Rename Category:", oldCategory);
-        if (!newCategory || newCategory === oldCategory) return;
+    const QuizModal = ({ quiz, onClose }) => {
+        if (!quiz) return null;
+        const { score, total, questions } = quiz.data;
+        const percentage = Math.round((score / total) * 100);
+        return (
+            <div className="modal-overlay" onClick={onClose}>
+                <div className="modal-content" onClick={e => e.stopPropagation()}>
+                    <button className="modal-close" onClick={onClose}>×</button>
+                    <h2 style={{ marginBottom: '40px' }}>{quiz.title}</h2>
+                    <div className="lib-quiz-result-hero" style={{ textAlign: 'center', marginBottom: '40px' }}>
+                        <div style={{ fontSize: '4rem', fontWeight: 800, color: '#4F46E5' }}>{percentage}%</div>
+                        <p style={{ color: '#64748B' }}>Score: {score} / {total}</p>
+                    </div>
+                    <div className="lib-quiz-review">
+                        {questions?.map((q, idx) => {
+                            const userSelected = q.options[q.userIndex];
+                            const correctAnswer = q.options[q.correctIndex];
+                            const isCorrect = q.userIndex === q.correctIndex;
 
-        try {
-            const res = await fetch(`${API_URL}/category`, {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`
-                },
-                body: JSON.stringify({ oldCategory, newCategory }),
-            });
-            if (!res.ok) throw new Error("Failed to rename");
-
-            // Refresh library
-            fetchLibrary();
-        } catch (err) {
-            alert("Could not rename category");
-        }
+                            return (
+                                <div key={idx} style={{
+                                    background: '#F8FAFC',
+                                    padding: '20px',
+                                    borderRadius: '16px',
+                                    marginBottom: '16px',
+                                    border: `1px solid ${isCorrect ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)'}`
+                                }}>
+                                    <p style={{ fontWeight: 600, marginBottom: '12px' }}>{q.question}</p>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                        <p style={{ color: isCorrect ? '#10B981' : '#EF4444', fontSize: '14px' }}>
+                                            <strong>Your Answer:</strong> {userSelected || "No answer"}
+                                        </p>
+                                        {!isCorrect && (
+                                            <p style={{ color: '#10B981', fontSize: '14px' }}>
+                                                <strong>Correct:</strong> {correctAnswer}
+                                            </p>
+                                        )}
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            </div>
+        );
     };
 
-    if (loading) return <div className="lib-loading">Loading Library...</div>;
-    if (error) return <div className="lib-error">{error}</div>;
+    const filteredItems = items.filter(item => {
+        if (filter === "All") return true;
+        return item.type === filter.toLowerCase();
+    });
+
+    if (loading) return <div className="lib-root" style={{ alignItems: 'center', justifyContent: 'center' }}><div className="tp-spinner"></div></div>;
 
     return (
-        <div className="lib-container">
-            {/* Background Orbs */}
-            <div className="lib-bg-orb lib-bg-orb--left" />
-            <div className="lib-bg-orb lib-bg-orb--right" />
+        <div className="lib-root">
+            <aside className="lib-sidebar">
+                <div className="lib-sidebar-brand">StudyHub.Library</div>
+                <div className="lib-nav-group">
+                    <div className="lib-nav-label">Collections</div>
+                    {SIDEBAR_NAV.map(nav => (
+                        <button
+                            key={nav.id}
+                            className={`lib-nav-item ${filter === nav.id ? 'active' : ''}`}
+                            onClick={() => setFilter(nav.id)}
+                        >
+                            <span className="lib-nav-icon">{nav.icon}</span>
+                            {nav.label}
+                        </button>
+                    ))}
+                </div>
 
-            {/* Glass Shell */}
-            <main className="lib-shell">
+                <div className="lib-accent-bar" style={{ background: 'var(--primary)' }}></div>
+                <div className="lib-nav-group" style={{ marginTop: 'auto' }}>
+                    <div className="lib-nav-label">Settings</div>
+                    <button className="lib-nav-item logout" onClick={logout}>
+                        <span className="lib-nav-icon"><LogOut size={18} /></span>
+                        Logout
+                    </button>
+                </div>
+            </aside>
+
+            <main className="lib-main">
                 <header className="lib-header">
-                    <h1>My Library</h1>
-                    <p>Your collected knowledge, organized by topic.</p>
+                    <div className="lib-title-area">
+                        <h1>{SIDEBAR_NAV.find(n => n.id === filter)?.label || "Library"}</h1>
+                        <p>{filteredItems.length} items collected</p>
+                    </div>
+                    <div className="lib-controls">
+                        <div className="lib-view-toggle">
+                            <button
+                                className={`lib-view-btn ${viewMode === 'grid' ? 'active' : ''}`}
+                                onClick={() => setViewMode('grid')}
+                            >
+                                🔲
+                            </button>
+                            <button
+                                className={`lib-view-btn ${viewMode === 'list' ? 'active' : ''}`}
+                                onClick={() => setViewMode('list')}
+                            >
+                                ≡
+                            </button>
+                        </div>
+                    </div>
                 </header>
 
-                <div className="lib-content">
-                    {Object.keys(groupedItems).length === 0 ? (
-                        <div className="lib-empty">No saved items yet. Go search and save something!</div>
-                    ) : (
-                        Object.keys(groupedItems).map(category => (
-                            <div key={category} className="lib-category-section">
-                                <div className="lib-category-header-wrap">
-                                    <h2 className="lib-category-title">{category}</h2>
-                                    <button
-                                        className="lib-edit-cat-btn"
-                                        onClick={() => handleRenameCategory(category)}
-                                        title="Rename Section"
-                                    >
-                                        ✎
+                {filteredItems.length === 0 ? (
+                    <div className="lib-empty">
+                        <span className="lib-empty-icon"><Package size={64} style={{ opacity: 0.2, marginBottom: '16px' }} /></span>
+                        <h3>No items in this collection yet</h3>
+                        <p>Items you save during your deep study will appear here.</p>
+                    </div>
+                ) : (
+                    <div className={viewMode === 'grid' ? 'lib-grid' : 'lib-list'}>
+                        {filteredItems.map(item => (
+                            <div
+                                key={item._id}
+                                className="lib-card"
+                                onClick={() => {
+                                    if (item.type === 'note') setSelectedNote(item);
+                                    else if (item.type === 'video') setSelectedVideo(item);
+                                    else if (item.type === 'quiz') setSelectedQuiz(item);
+                                    else {
+                                        const externalUrl = item.data.url || item.data.link;
+                                        if (externalUrl) window.open(externalUrl, '_blank');
+                                    }
+                                }}
+                            >
+                                <span className="lib-card-type">{item.type}</span>
+                                <h3 className="lib-card-title">{item.title}</h3>
+                                <div className="lib-card-footer">
+                                    <div className="lib-card-meta">
+                                        <span className="lib-category-tag">{item.category || "General"}</span>
+                                        <span>{new Date(item.createdAt).toLocaleDateString()}</span>
+                                    </div>
+                                    <button className="lib-card-action-btn" onClick={(e) => handleDelete(e, item._id)}>
+                                        ×
                                     </button>
                                 </div>
-                                <div className="lib-grid">
-                                    {groupedItems[category].map((item) => (
-                                        <div key={item._id} className="lib-card">
-                                            <div className="lib-card-header">
-                                                <span className={`lib-badge badge-${item.type}`}>{item.type}</span>
-                                                <button
-                                                    className="lib-delete-btn"
-                                                    onClick={(e) => { e.stopPropagation(); handleDelete(item._id); }}
-                                                    title="Delete"
-                                                >
-                                                    ×
-                                                </button>
-                                            </div>
-
-                                            <h3 className="lib-card-title">{item.title}</h3>
-
-                                            {/* Content Preview / Actions */}
-                                            <div className="lib-card-body">
-                                                {item.type === "note" && (
-                                                    <div className="lib-card-content">
-                                                        <p className="lib-note-preview">
-                                                            {(item.data.markdown || "").substring(0, 100)}...
-                                                        </p>
-                                                    </div>
-                                                )}
-
-                                                {item.type === "video" && (
-                                                    <div className="lib-card-content">
-                                                        <div className="lib-thumbnail-wrapper">
-                                                            <img src={item.data.thumbnail} alt="thumbnail" />
-                                                            <div className="lib-play-overlay">▶</div>
-                                                        </div>
-                                                    </div>
-                                                )}
-
-                                                {item.type === "book" && (
-                                                    <div className="lib-card-content">
-                                                        <div className="lib-book-wrapper">
-                                                            {item.data.thumbnail ? (
-                                                                <img src={item.data.thumbnail} alt="cover" />
-                                                            ) : (
-                                                                <div className="lib-book-placeholder">📖</div>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                )}
-
-                                                {item.type === "source" && (
-                                                    <div className="lib-card-content">
-                                                        <div className="lib-source-icon">🌐</div>
-                                                        <p className="lib-source-domain">{new URL(item.data.url).hostname}</p>
-                                                    </div>
-                                                )}
-
-                                                {/* Unified Footer Actions */}
-                                                <div className="lib-card-footer">
-                                                    {item.type === "note" && (
-                                                        <button className="lib-btn-secondary full-width" onClick={() => setSelectedNote(item)}>
-                                                            View Full Note
-                                                        </button>
-                                                    )}
-
-                                                    {item.type === "video" && (
-                                                        <div className="lib-video-actions">
-                                                            <button
-                                                                className="lib-btn-primary"
-                                                                onClick={() => setSelectedVideo(item)}
-                                                            >
-                                                                Watch Here
-                                                            </button>
-                                                            <a
-                                                                href={item.data.url}
-                                                                target="_blank"
-                                                                rel="noreferrer"
-                                                                className="lib-btn-secondary"
-                                                            >
-                                                                New Tab ↗
-                                                            </a>
-                                                        </div>
-                                                    )}
-
-                                                    {item.type === "book" && (
-                                                        <a href={item.data.url} target="_blank" rel="noreferrer" className="lib-btn-secondary full-width">
-                                                            View Book ↗
-                                                        </a>
-                                                    )}
-
-                                                    {item.type === "source" && (
-                                                        <a href={item.data.url} target="_blank" rel="noreferrer" className="lib-btn-secondary full-width">
-                                                            Visit Source ↗
-                                                        </a>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
                             </div>
-                        ))
-                    )}
-                </div>
+                        ))}
+                    </div>
+                )}
             </main>
 
             {selectedNote && <NoteModal note={selectedNote} onClose={() => setSelectedNote(null)} />}
             {selectedVideo && <VideoModal video={selectedVideo} onClose={() => setSelectedVideo(null)} />}
+            {selectedQuiz && <QuizModal quiz={selectedQuiz} onClose={() => setSelectedQuiz(null)} />}
         </div>
     );
-
 }
 
 export default LibraryPage;

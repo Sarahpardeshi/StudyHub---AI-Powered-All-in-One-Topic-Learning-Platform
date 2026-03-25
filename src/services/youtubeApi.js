@@ -5,7 +5,7 @@ console.log("API_KEY in youtubeApi:", API_KEY);
 
 export async function fetchYoutubeVideos(topic) {
   const url = `${BASE_URL}?part=snippet&type=video&maxResults=6&q=${encodeURIComponent(
-    topic
+    topic + " tutorial explained lesson"
   )}&key=${API_KEY}`;
 
   console.log("YT request URL:", url);
@@ -13,9 +13,14 @@ export async function fetchYoutubeVideos(topic) {
   console.log("YT status:", res.status);
 
   if (!res.ok) {
-    const text = await res.text();
-    console.error("YT error body:", text);
-    throw new Error("Failed to load YouTube videos");
+    const errorData = await res.json().catch(() => ({}));
+    const reason = errorData.error?.errors?.[0]?.reason || "unknown";
+    console.error("YT error details:", errorData);
+
+    if (reason === "quotaExceeded") {
+      throw new Error("YouTube API quota exceeded. Please try again later.");
+    }
+    throw new Error(`Failed to load YouTube videos (Status: ${res.status})`);
   }
 
   const data = await res.json();
