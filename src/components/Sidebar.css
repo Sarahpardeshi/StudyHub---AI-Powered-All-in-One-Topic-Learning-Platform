@@ -67,12 +67,12 @@
 }
 
 .sidebar-close-btn {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(0, 0, 0, 0.05);
+    background: transparent;
+    border: none;
     color: var(--text-muted);
     width: 38px;
     height: 38px;
-    border-radius: 50%;
+    border-radius: 8px;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -81,10 +81,8 @@
 }
 
 .sidebar-close-btn:hover {
-    background-color: var(--primary-soft);
-    color: var(--primary);
-    border-color: var(--primary);
-    transform: rotate(180deg);
+    background-color: rgba(0, 0, 0, 0.05);
+    color: var(--text);
 }
 
 
@@ -224,7 +222,6 @@
     min-width: 120px;
     z-index: 100;
     overflow: hidden;
-    margin-top: 4px;
 }
 
 /* Show menu on hover of the trigger container (simple approach) */
@@ -329,4 +326,29 @@
 
 .logout-btn:hover {
     color: var(--primary);
+}
+
+/* Toast Notification - Matching Saved to Library Task */
+.toast-notification {
+    position: fixed;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: var(--primary);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    box-shadow: 0 10px 25px var(--primary-soft);
+    z-index: 1000;
+    animation: sidebar-slideUpFade 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+@keyframes sidebar-slideUpFade {
+    from { opacity: 0; transform: translate(-50%, 20px); }
+    to { opacity: 1; transform: translate(-50%, 0); }
 }

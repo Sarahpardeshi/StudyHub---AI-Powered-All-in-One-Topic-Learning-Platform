@@ -48,10 +48,14 @@ function AppContent() {
   const [activeHistoryItem, setActiveHistoryItem] = useState(null);
   const [initialTopicState, setInitialTopicState] = useState(null);
 
-  // Fetch history on mount
+  // Fetch history on mount / Reset state on logout
   useEffect(() => {
     if (isAuthenticated) {
       fetchHistory();
+    } else {
+      setView("landing");
+      setTopic("");
+      setActiveHistoryItem(null);
     }
   }, [isAuthenticated]);
 
@@ -88,15 +92,18 @@ function AppContent() {
 
   // Authenticated: Show Main Layout
   const handleStartTopic = (newTopic, historyItem = null, topicState = null) => {
-    // If no historyItem provided (e.g. from search), try to find an existing one
-    const existing = historyItem || allHistory.find(h => h.topic.toLowerCase() === newTopic.toLowerCase());
+    // Only load from cache if the history item was explicitly passed (e.g., clicked from the Sidebar history list).
+    // If it came from a Search submission, we force a completely fresh API generation.
+    const existing = historyItem;
+    const manualExistingSearch = allHistory.find(h => h.topic.toLowerCase() === newTopic.toLowerCase());
 
     setTopic(newTopic);
     setView("topic");
     setActiveHistoryItem(existing);
     setInitialTopicState(topicState);
 
-    // If it's truly a new search (not in history), save it
+    // We no longer delete the old DB record because the user requested that multiple 
+    // searches for the same topic label generate fresh, separate history records.
     if (!existing) {
       saveToHistory(newTopic);
     }
@@ -126,8 +133,7 @@ function AppContent() {
       if (res.ok) {
         const newItem = await res.json();
         setAllHistory(prev => {
-          const filtered = prev.filter(h => h.topic.toLowerCase() !== topicName.toLowerCase());
-          return [newItem, ...filtered];
+          return [newItem, ...prev];
         });
         setActiveHistoryItem(newItem);
       } else {
@@ -170,8 +176,11 @@ function AppContent() {
     const token = localStorage.getItem("auth_token");
     if (!token) return;
     try {
-      const res = await fetch("http://localhost:5006/api/history", {
-        method: "POST",
+      const url = activeHistoryItem ? `http://localhost:5006/api/history/${activeHistoryItem._id}` : "http://localhost:5006/api/history";
+      const method = activeHistoryItem ? "PUT" : "POST";
+
+      const res = await fetch(url, {
+        method,
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
@@ -189,8 +198,6 @@ function AppContent() {
 
   const handleNewChat = () => {
     setView("landing");
-    setTopic("");
-    setActiveHistoryItem(null);
     if (window.innerWidth < 768) {
       setSidebarOpen(false);
     }
@@ -228,6 +235,7 @@ function AppContent() {
           onHome={handleNewChat}
           onOpenLibrary={() => setView("library")}
           onOpenExplore={() => setView("explore")}
+          onOpenWorkspace={() => { if (topic) setView("topic"); }}
           onOpenSettings={() => setView("settings")}
           view={view}
           user={user}
@@ -242,15 +250,18 @@ function AppContent() {
             history={allHistory}
           />
         )}
-        {view === "topic" && (
-          <TopicPage
-            topic={topic}
-            onBack={handleNewChat}
-            historyItem={activeHistoryItem}
-            onUpdateHistory={(updates) => handleUpdateHistory(topic, updates)}
-            initialState={initialTopicState}
-          />
-        )}
+        <div style={{ display: view === "topic" ? "block" : "none", flex: 1, minHeight: 0, width: "100%" }}>
+          {topic && activeHistoryItem && (
+            <TopicPage
+              key={activeHistoryItem._id}
+              topic={topic}
+              onBack={handleNewChat}
+              historyItem={activeHistoryItem}
+              onUpdateHistory={(updates) => handleUpdateHistory(topic, updates)}
+              initialState={initialTopicState}
+            />
+          )}
+        </div>
         {view === "library" && <LibraryPage />}
         {view === "explore" && <ExplorePage onStartTopic={handleStartTopic} />}
         {view === "settings" && <SettingsPage onBack={handleNewChat} user={user} />}

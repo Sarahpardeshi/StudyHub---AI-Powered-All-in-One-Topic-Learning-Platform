@@ -16,7 +16,9 @@ import {
   Globe,
   ExternalLink,
   Star,
-  Sparkles
+  Sparkles,
+  Copy,
+  Check
 } from "lucide-react";
 
 import FlashcardDeck from "../components/FlashcardDeck.js";
@@ -24,7 +26,6 @@ import Quiz from "../components/Quiz.js";
 import "../pages/Flashcards.css";
 
 const PANELS = [
-  { id: "Summary", name: "Overview", icon: <LayoutDashboard size={18} /> },
   { id: "AI Notes", name: "Key Concepts", icon: <Lightbulb size={18} /> },
   { id: "Quizzes", name: "Training Quiz", icon: <PenTool size={18} /> },
   { id: "Flashcards", name: "Smart Cards", icon: <Layers size={18} /> },
@@ -34,6 +35,68 @@ const PANELS = [
 ];
 
 const API_URL = "http://localhost:5006/api/library";
+
+const CodeBlock = ({ inline, className, children, ...props }) => {
+  const [copied, setCopied] = useState(false);
+  const match = /language-(\w+)/.exec(className || "");
+  const handleCopy = () => {
+    navigator.clipboard.writeText(String(children).replace(/\n$/, ""));
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+  if (!inline && match) {
+    return (
+      <div style={{ position: 'relative', marginTop: '16px', marginBottom: '16px' }}>
+        <button 
+           onClick={handleCopy} 
+           style={{ position: 'absolute', top: '8px', right: '8px', background: 'rgba(255,255,255,0.15)', color: '#fff', border: 'none', borderRadius: '4px', padding: '4px 8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', zIndex: 10, backdropFilter: 'blur(4px)' }}
+           title="Copy to clipboard"
+        >
+          {copied ? <Check size={14}/> : <Copy size={14}/>} {copied ? 'Copied' : 'Copy'}
+        </button>
+        <code className={className} {...props}>
+          {children}
+        </code>
+      </div>
+    );
+  }
+  return <code className={className} {...props}>{children}</code>;
+};
+
+const BookCover = ({ book }) => {
+  const [imgSrc, setImgSrc] = useState(
+    book.thumbnail ? book.thumbnail.replace("http://", "https://") : null
+  );
+
+  useEffect(() => {
+    let active = true;
+    if (!book.thumbnail) {
+      fetch(`https://www.googleapis.com/books/v1/volumes?q=intitle:${encodeURIComponent(book.title)}&maxResults=1`)
+        .then(res => res.json())
+        .then(data => {
+          if (active) {
+            if (data.items && data.items.length > 0 && data.items[0].volumeInfo?.imageLinks?.thumbnail) {
+              setImgSrc(data.items[0].volumeInfo.imageLinks.thumbnail.replace("http://", "https://"));
+            } else {
+              setImgSrc("https://placehold.co/128x192/E2E8F0/64748B?text=No+Cover");
+            }
+          }
+        })
+        .catch(() => {
+          if (active) setImgSrc("https://placehold.co/128x192/E2E8F0/64748B?text=No+Cover");
+        });
+    }
+    return () => { active = false; };
+  }, [book.thumbnail, book.title]);
+
+  return (
+    <img
+      src={imgSrc || `https://placehold.co/128x192/E2E8F0/64748B?text=Loading...`}
+      alt={book.title}
+      onError={(e) => { e.target.src = "https://placehold.co/128x192/E2E8F0/64748B?text=No+Cover"; }}
+    />
+  );
+};
 
 function TopicPage({ topic, onBack, historyItem, onUpdateHistory, initialState }) {
   const { token, logout } = useAuth();
@@ -46,13 +109,18 @@ function TopicPage({ topic, onBack, historyItem, onUpdateHistory, initialState }
   const [notesLoading, setNotesLoading] = useState(false);
   const [summary, setSummary] = useState("");
   const [flashcards, setFlashcards] = useState(null);
+  const [flashcardsLoading, setFlashcardsLoading] = useState(false);
   const [quizzes, setQuizzes] = useState(null);
+  const [quizzesLoading, setQuizzesLoading] = useState(false);
   const [videos, setVideos] = useState([]);
   const [videoError, setVideoError] = useState(null);
   const [readingList, setReadingList] = useState(null);
   const [readingListLoading, setReadingListLoading] = useState(false);
   const [webSources, setWebSources] = useState(null);
   const [webSourcesLoading, setWebSourcesLoading] = useState(false);
+
+  // Toast state
+  const [toastMessage, setToastMessage] = useState(null);
 
   // Chat state
   const [chatInput, setChatInput] = useState("");
@@ -143,10 +211,24 @@ function TopicPage({ topic, onBack, historyItem, onUpdateHistory, initialState }
           console.error("Video load error:", err);
           setVideoError(err.message || "Unable to load videos.");
         });
-    } else if (activePanel === "Flashcards" && flashcards === null && notes) {
-      fetchFlashcards(topic, notes).then(setFlashcards);
-    } else if (activePanel === "Quizzes" && quizzes === null && notes) {
-      fetchQuizQuestions(topic, notes).then(setQuizzes);
+    } else if (activePanel === "Flashcards" && flashcards === null && notes && !flashcardsLoading) {
+      setFlashcardsLoading(true);
+      fetchFlashcards(topic, notes).then(data => {
+        setFlashcards(data);
+        setFlashcardsLoading(false);
+      }).catch(() => {
+        setFlashcards([]);
+        setFlashcardsLoading(false);
+      });
+    } else if (activePanel === "Quizzes" && quizzes === null && notes && !quizzesLoading) {
+      setQuizzesLoading(true);
+      fetchQuizQuestions(topic, notes).then(data => {
+        setQuizzes(data);
+        setQuizzesLoading(false);
+      }).catch(() => {
+        setQuizzes([]);
+        setQuizzesLoading(false);
+      });
     } else if (activePanel === "Reading List" && readingList === null && !readingListLoading) {
       setReadingListLoading(true);
       fetchReadingList(topic).then(data => {
@@ -277,6 +359,15 @@ function TopicPage({ topic, onBack, historyItem, onUpdateHistory, initialState }
     setAttachments([]);
     setIsChatting(true);
 
+    if (onUpdateHistory && notes) {
+      onUpdateHistory({
+        content: notes,
+        chatMessages: newHistory,
+        flashcards: Array.isArray(flashcards) ? flashcards : [],
+        quizzes: Array.isArray(quizzes) ? quizzes : []
+      });
+    }
+
     try {
       // 2. Create the ACTUAL payload for the API (includes the dataset)
       const apiHistoryForThisRequest = chatMessages.map(m => ({ 
@@ -287,16 +378,22 @@ function TopicPage({ topic, onBack, historyItem, onUpdateHistory, initialState }
       apiHistoryForThisRequest.push({ role: "user", content: userContent });
       
       const response = await fetchChatResponse(apiHistoryForThisRequest, topic, notes, hasDocument);
-      setChatMessages(prev => [...prev, { role: "assistant", content: response, displayContent: response }]);
+      const updatedHistory = [...newHistory, { role: "assistant", content: response, displayContent: response }];
+      setChatMessages(updatedHistory);
+      
+      if (onUpdateHistory && notes) {
+        onUpdateHistory({
+          content: notes,
+          chatMessages: updatedHistory,
+          flashcards: Array.isArray(flashcards) ? flashcards : [],
+          quizzes: Array.isArray(quizzes) ? quizzes : []
+        });
+      }
 
       // PERSIST TO SMART NOTES: Append meaningful findings to the study guide
-      // Note: We only append if response is text (which it will be from the assistant)
+      // Note: Removed the text appending to 'notes' to prevent duplicating the answer 
+      // above the user's chat question. The chat response will stay in the chat UI.
       if (typeof response === "string" && response.length > 50) {
-        setNotes(prev => {
-          const separator = `\n\n---\n\n### 💡 Supplemental Insights\n\n`;
-          if (prev.includes(response.substring(0, 20))) return prev;
-          return prev + separator + response;
-        });
 
         // Auto-generate more flashcards from this new information
         fetchFlashcards(topic, response).then(moreCards => {
@@ -308,6 +405,20 @@ function TopicPage({ topic, onBack, historyItem, onUpdateHistory, initialState }
                 return [...prev, ...filteredNew];
               }
               return moreCards;
+            });
+          }
+        });
+
+        // Auto-generate more quiz questions from this specific new sub-topic context
+        fetchQuizQuestions(topic, response).then(moreQuizzes => {
+          if (moreQuizzes && moreQuizzes.length > 0) {
+            setQuizzes(prev => {
+              if (Array.isArray(prev)) {
+                const existingQs = new Set(prev.map(q => (q.question || "").toLowerCase().trim()));
+                const filteredNew = moreQuizzes.filter(q => q && q.question && !existingQs.has(q.question.toLowerCase().trim()));
+                return [...prev, ...filteredNew];
+              }
+              return moreQuizzes;
             });
           }
         });
@@ -338,14 +449,16 @@ function TopicPage({ topic, onBack, historyItem, onUpdateHistory, initialState }
         }),
       });
 
-      if (res.ok) {
-        alert("✅ Saved to Library!");
-      } else {
+      if (!res.ok) {
         throw new Error("Failed to save");
       }
+      
+      setToastMessage("Saved to Library!");
+      setTimeout(() => setToastMessage(null), 3000);
     } catch (err) {
       console.error("Save failed:", err);
-      alert("❌ Failed to save to library.");
+      setToastMessage("Failed to save to library.");
+      setTimeout(() => setToastMessage(null), 3000);
     }
   };
 
@@ -359,6 +472,8 @@ function TopicPage({ topic, onBack, historyItem, onUpdateHistory, initialState }
     } else if (panelId === "YouTube Videos") {
       setVideos([]);
       setVideoError(null);
+    } else if (panelId === "Quizzes") {
+      setQuizzes(null);
     }
   };
 
@@ -373,37 +488,15 @@ function TopicPage({ topic, onBack, historyItem, onUpdateHistory, initialState }
     }
 
     switch (activePanel) {
-      case "Summary":
-        return (
-          <div className="tp-markdown">
-            <ReactMarkdown>{summary || "Loading overview..."}</ReactMarkdown>
-            <div className="tp-chat-history" ref={chatContainerRef}>
-              {chatMessages.map((msg, i) => (
-                <div key={i} className={`tp-chat-bubble-wrapper tp-chat-bubble--${msg.role}`}>
-                  <div className="tp-chat-bubble">
-                    <ReactMarkdown>{msg.displayContent || (typeof msg.content === 'string' ? msg.content : "*(Document/Image Attached)*")}</ReactMarkdown>
-                  </div>
-                </div>
-              ))}
-              {isChatting && (
-                <div className="tp-chat-bubble-wrapper tp-chat-bubble--assistant">
-                  <div className="tp-chat-bubble loading">
-                    <div className="tp-typing-dots"><span></span><span></span><span></span></div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        );
       case "AI Notes":
         return (
           <div className="tp-markdown">
-            <ReactMarkdown>{notes}</ReactMarkdown>
+            <ReactMarkdown components={{ code: CodeBlock }}>{notes}</ReactMarkdown>
             <div className="tp-chat-history" ref={chatContainerRef}>
               {chatMessages.map((msg, i) => (
                 <div key={i} className={`tp-chat-bubble-wrapper tp-chat-bubble--${msg.role}`}>
                   <div className="tp-chat-bubble">
-                    <ReactMarkdown>{msg.displayContent || (typeof msg.content === 'string' ? msg.content : "*(Document/Image Attached)*")}</ReactMarkdown>
+                    <ReactMarkdown components={{ code: CodeBlock }}>{msg.displayContent || (typeof msg.content === 'string' ? msg.content : "*(Document/Image Attached)*")}</ReactMarkdown>
                   </div>
                 </div>
               ))}
@@ -418,8 +511,24 @@ function TopicPage({ topic, onBack, historyItem, onUpdateHistory, initialState }
           </div>
         );
       case "Flashcards":
-        return <FlashcardDeck cards={flashcards} />;
+        if (flashcardsLoading || (notesLoading && flashcards === null)) {
+          return (
+            <div className="tp-loading-state">
+              <div className="tp-spinner"></div>
+              <p>Crafting your focused smart cards...</p>
+            </div>
+          );
+        }
+        return <FlashcardDeck cards={flashcards} onRegenerate={() => retryFetch("Flashcards")} />;
       case "Quizzes":
+        if (quizzesLoading || (notesLoading && quizzes === null)) {
+          return (
+            <div className="tp-loading-state">
+              <div className="tp-spinner"></div>
+              <p>Generating your training quiz...</p>
+            </div>
+          );
+        }
         return (
           <Quiz
             questions={quizzes}
@@ -491,11 +600,7 @@ function TopicPage({ topic, onBack, historyItem, onUpdateHistory, initialState }
                   className="tp-book-card-link"
                 >
                   <div className="tp-book-card">
-                    <img
-                      src={b.thumbnail ? b.thumbnail.replace("http://", "https://") : "https://via.placeholder.com/128x192?text=No+Cover"}
-                      alt={b.title}
-                      onError={(e) => { e.target.src = "https://via.placeholder.com/128x192?text=No+Cover"; }}
-                    />
+                    <BookCover book={b} />
                     <div>
                       <h3>{b.title}</h3>
                       <p><strong>{b.author}</strong></p>
@@ -683,12 +788,13 @@ function TopicPage({ topic, onBack, historyItem, onUpdateHistory, initialState }
         </main>
       </div>
 
-      <div className="tp-floating-actions">
-        <button className="tp-action-fab" title="Save to Library">★</button>
-        <button className="tp-action-fab" title="Export PDF">📄</button>
-        <button className="tp-action-fab" title="Share">🔗</button>
-      </div>
 
+
+      {toastMessage && (
+        <div className="tp-toast">
+          ✓ {toastMessage}
+        </div>
+      )}
       {selectedVideo && <VideoModal video={selectedVideo} onClose={() => setSelectedVideo(null)} />}
     </div>
   );

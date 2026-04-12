@@ -19,7 +19,7 @@ import './ExplorePage.css';
 const CATEGORIES = [
     { id: 'cs', name: 'Computer Science', icon: <Code size={24} />, color: '#4F46E5', count: '1.2k topics' },
     { id: 'science', name: 'Natural Sciences', icon: <Atom size={24} />, color: '#8B5CF6', count: '850 topics' },
-    { id: 'business', name: 'Business & Finance', icon: <Briefcase size={24} />, color: '#06B6D4', count: '640 topics' },
+    { id: 'business', name: 'Business & Finance', icon: <Briefcase size={24} />, color: 'var(--primary)', count: '640 topics' },
     { id: 'arts', name: 'Arts & Humanities', icon: <Palette size={24} />, color: '#EC4899', count: '520 topics' },
     { id: 'global', name: 'Global Languages', icon: <Globe size={24} />, color: '#F59E0B', count: '310 topics' },
     { id: 'math', name: 'Mathematics', icon: <BookOpen size={24} />, color: '#10B981', count: '420 topics' },

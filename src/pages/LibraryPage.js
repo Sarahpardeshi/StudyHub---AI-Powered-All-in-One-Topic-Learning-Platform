@@ -37,6 +37,7 @@ function LibraryPage() {
     const [selectedNote, setSelectedNote] = useState(null);
     const [selectedVideo, setSelectedVideo] = useState(null);
     const [selectedQuiz, setSelectedQuiz] = useState(null);
+    const [toastMessage, setToastMessage] = useState(null);
 
     useEffect(() => {
         if (token) {
@@ -65,7 +66,6 @@ function LibraryPage() {
 
     const handleDelete = async (e, id) => {
         e.stopPropagation();
-        if (!window.confirm("Delete this from your library?")) return;
         try {
             const res = await fetch(`${API_URL}/${id}`, {
                 method: "DELETE",
@@ -76,8 +76,11 @@ function LibraryPage() {
                 return;
             }
             setItems(prev => prev.filter(item => item._id !== id));
+            setToastMessage("Item removed from Library!");
+            setTimeout(() => setToastMessage(null), 3000);
         } catch (err) {
-            alert("Failed to delete item");
+            setToastMessage("Failed to delete item.");
+            setTimeout(() => setToastMessage(null), 3000);
         }
     };
 
@@ -275,6 +278,12 @@ function LibraryPage() {
             {selectedNote && <NoteModal note={selectedNote} onClose={() => setSelectedNote(null)} />}
             {selectedVideo && <VideoModal video={selectedVideo} onClose={() => setSelectedVideo(null)} />}
             {selectedQuiz && <QuizModal quiz={selectedQuiz} onClose={() => setSelectedQuiz(null)} />}
+
+            {toastMessage && (
+                <div className="lib-toast">
+                    ✓ {toastMessage}
+                </div>
+            )}
         </div>
     );
 }

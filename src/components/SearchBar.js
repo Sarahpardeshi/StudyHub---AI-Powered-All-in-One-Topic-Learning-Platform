@@ -12,7 +12,6 @@ function SearchBar({ onSearch, placeholder = "Search a topic...", variant = "def
 
   return (
     <form className={`searchbar-root searchbar--${variant}`} onSubmit={handleSubmit}>
-      <span className="search-icon">🔍</span>
       <input
         type="text"
         placeholder={placeholder}

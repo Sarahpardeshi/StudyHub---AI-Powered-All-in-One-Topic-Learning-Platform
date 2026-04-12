@@ -23,13 +23,22 @@ const Flashcard = ({ card, onFlip, isFlipped }) => {
     );
 };
 
-const FlashcardDeck = ({ cards = [] }) => {
+const FlashcardDeck = ({ cards = [], onRegenerate }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isFlipped, setIsFlipped] = useState(false);
 
     // Safety check
     if (!cards || cards.length === 0) {
-        return <div className="fc-deck-container" style={{ color: 'rgba(255,255,255,0.5)' }}>No flashcards available.</div>;
+        return (
+            <div className="fc-deck-container" style={{ color: 'rgba(255,255,255,0.5)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '15px' }}>
+                <p style={{ color: '#64748B' }}>No flashcards available for this topic yet.</p>
+                {onRegenerate && (
+                    <button onClick={onRegenerate} style={{ padding: '10px 20px', background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer' }}>
+                        Try Re-generating
+                    </button>
+                )}
+            </div>
+        );
     }
 
     const handleNext = () => {
@@ -54,6 +63,13 @@ const FlashcardDeck = ({ cards = [] }) => {
 
     return (
         <div className="fc-deck-container">
+            <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%', maxWidth: '600px', marginBottom: '15px' }}>
+                {onRegenerate && (
+                    <button onClick={onRegenerate} style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: '13px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        🔄 Regenerate
+                    </button>
+                )}
+            </div>
             <Flashcard
                 card={currentCard}
                 isFlipped={isFlipped}

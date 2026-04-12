@@ -151,7 +151,7 @@ function RegisterPage({ onSwitchToLogin }) {
 
                 {error && <p className="auth-error" style={{ color: '#ef4444', fontSize: '0.85rem', marginBottom: '1rem' }}>{error}</p>}
 
-                <button type="submit" className="auth-btn-primary" style={{ background: '#4F46E5' }}>
+                <button type="submit" className="auth-btn-primary" style={{ background: '#4D55CC' }}>
                     Create My Account →
                 </button>
             </form>
@@ -169,10 +169,6 @@ function RegisterPage({ onSwitchToLogin }) {
                         shape="pill"
                     />
                 </div>
-                <button className="auth-social-btn">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" alt="Apple" />
-                    Apple
-                </button>
             </div>
 
             <p className="auth-footer-text">

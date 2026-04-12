@@ -1,17 +1,17 @@
 import React from "react";
 import SearchBar from "./SearchBar.js";
-import { Settings } from "lucide-react";
+import { Settings, Menu } from "lucide-react";
 import "./Header.css";
 
 import logo from "../assets/studyhub_logo.png";
 
-function Header({ topic, onSearch, onHome, onOpenLibrary, onOpenExplore, onOpenSettings, view, user, logout, sidebarOpen, toggleSidebar }) {
+function Header({ topic, onSearch, onHome, onOpenLibrary, onOpenExplore, onOpenWorkspace, onOpenSettings, view, user, logout, sidebarOpen, toggleSidebar }) {
     return (
         <header className="app-header">
             <div className="header-left">
                 {!sidebarOpen && (
                     <button className="sidebar-toggle-btn" onClick={toggleSidebar} title="Open Sidebar">
-                        ❯
+                        <Menu size={20} />
                     </button>
                 )}
                 <div className="header-logo" onClick={onHome}>
@@ -31,6 +31,14 @@ function Header({ topic, onSearch, onHome, onOpenLibrary, onOpenExplore, onOpenS
                     >
                         Dashboard
                     </button>
+                    {topic && (
+                        <button
+                            className={`nav-link ${view === "topic" ? "active" : ""}`}
+                            onClick={onOpenWorkspace}
+                        >
+                            Workspace
+                        </button>
+                    )}
                     <button
                         className={`nav-link ${view === "library" ? "active" : ""}`}
                         onClick={onOpenLibrary}
@@ -46,24 +54,18 @@ function Header({ topic, onSearch, onHome, onOpenLibrary, onOpenExplore, onOpenS
                 </nav>
                 <div className="header-divider"></div>
                 <div className="header-actions">
-                    <div className="header-user-profile">
-                        {user?.avatar ? (
+                    <div 
+                        className={`header-user-profile ${view === "settings" ? "active" : ""}`} 
+                        onClick={onOpenSettings} 
+                        style={{ cursor: 'pointer' }}
+                        title="Profile & Settings"
+                    >
+                        {user?.avatar && !user.avatar.includes('dicebear') ? (
                             <img src={user.avatar} alt="User" className="header-user-avatar-img" />
                         ) : (
-                            <div className="header-user-avatar">{user?.username?.[0]?.toUpperCase()}</div>
+                            <div className="header-user-avatar">{user?.username?.[0]?.toUpperCase() || 'U'}</div>
                         )}
-                        <span className="header-username">{user?.username}</span>
-                        <button className="header-logout-btn" onClick={logout} title="Logout">
-                            ⏻
-                        </button>
                     </div>
-                    <button
-                        className={`header-icon-btn ${view === "settings" ? "active" : ""}`}
-                        onClick={onOpenSettings}
-                        title="Settings"
-                    >
-                        <Settings size={20} />
-                    </button>
                 </div>
             </div>
         </header>

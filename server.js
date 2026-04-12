@@ -188,32 +188,17 @@ app.post("/api/history", authenticateToken, async (req, res) => {
 
     const userId = new mongoose.Types.ObjectId(req.user.userId);
 
-    // Look for existing item for this topic (case insensitive)
-    let item = await History.findOne({
+    const item = new History({
       userId,
-      topic: { $regex: new RegExp(`^${topic.trim()}$`, "i") }
+      topic: topic.trim(),
+      content: content || "",
+      suggestions: suggestions || [],
+      chatMessages: chatMessages || [],
+      flashcards: flashcards || [],
+      quizzes: quizzes || []
     });
+    await item.save();
 
-    if (item) {
-      if (content) item.content = content;
-      if (suggestions && suggestions.length > 0) item.suggestions = suggestions;
-      if (chatMessages) item.chatMessages = chatMessages;
-      if (flashcards) item.flashcards = flashcards;
-      if (quizzes) item.quizzes = quizzes;
-      item.timestamp = Date.now();
-      await item.save();
-    } else {
-      item = new History({
-        userId,
-        topic: topic.trim(),
-        content: content || "",
-        suggestions: suggestions || [],
-        chatMessages: chatMessages || [],
-        flashcards: flashcards || [],
-        quizzes: quizzes || []
-      });
-      await item.save();
-    }
     res.status(201).json(item);
   } catch (err) {
     console.error("History Save Error:", err);

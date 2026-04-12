@@ -155,17 +155,14 @@ export async function fetchChatResponse(messages, topic = "", notes = "", hasDoc
 export async function fetchFlashcards(topic, contextNotes = null) {
   const hasValidContext = contextNotes && contextNotes.trim().length > 100 && !contextNotes.includes("⚠️ AI Service Unavailable");
 
-  const systemMsg = "You are a specialized academic educator. You focus on conceptual understanding and logical relationships. AVOID asking questions about the order of items (e.g., 'What is the third...'). Instead, ask questions that require reasoning about the 'why' and 'how' based strictly on the provided notes. You ONLY output valid JSON arrays.";
+  const systemMsg = "You are a specialized academic educator. You focus on conceptual understanding and logical relationships. AVOID asking questions about the order of items. Focus on 'why' and 'how'. You ONLY output valid JSON arrays. Format Example: [{\"question\": \"...\", \"answer\": \"...\"}]";
 
   const prompt = hasValidContext
     ? `STRICT INSTRUCTION: Generate 5 flashcards that test LOGICAL UNDERSTANDING of the following study notes. Do not ask for list orders.
     
 NOTES:
-"${contextNotes}"
-
-Return strictly a JSON array: [{"question": "...", "answer": "..."}]`
-    : `Generate 5 conceptual flashcards for the topic: "${topic}". 
-Return strictly a JSON array: [{"question": "...", "answer": "..."}]`;
+"${contextNotes}"`
+    : `Generate 5 conceptual flashcards for the topic: "${topic}".`;
 
   try {
     const content = await callAIWithFallbacks([
@@ -190,17 +187,14 @@ Return strictly a JSON array: [{"question": "...", "answer": "..."}]`;
 export async function fetchQuizQuestions(topic, contextNotes = null) {
   const hasValidContext = contextNotes && contextNotes.trim().length > 100 && !contextNotes.includes("⚠️ AI Service Unavailable");
 
-  const systemMsg = "You are an expert examiner. You create multiple-choice questions that test deep conceptual understanding and application rather than rote memorization. AVOID questions about sequences or list indices. Focus on 'why' things happen and 'how' concepts relate. You ONLY output valid JSON arrays.";
+  const systemMsg = "You are an expert examiner. You create multiple-choice questions that test deep conceptual understanding and application. AVOID questions about sequences or list indices. Focus on 'why' and 'how'. You ONLY output valid JSON arrays. CRITICAL: For each question, you MUST randomize the position of the correct answer among the 4 options. Do NOT always place it at the same index. Format Example: [{\"question\": \"...\", \"options\": [\"wrong\", \"right\", \"wrong\", \"wrong\"], \"correctIndex\": 1}]";
 
   const prompt = hasValidContext
     ? `STRICT INSTRUCTION: Generate 5 Multiple Choice Questions (MCQs) that require LOGICAL REASONING based on the study notes provided below.
     
 NOTES:
-"${contextNotes}"
-
-Return strictly a JSON array: [{"question": "...", "options": ["A", "B", "C", "D"], "correctIndex": 0}]`
-    : `Generate 5 reasoning-based MCQs for: "${topic}". 
-Return strictly a JSON array: [{"question": "...", "options": ["A", "B", "C", "D"], "correctIndex": 0}]`;
+"${contextNotes}"`
+    : `Generate 5 reasoning-based MCQs for the topic: "${topic}".`;
 
   try {
     const content = await callAIWithFallbacks([

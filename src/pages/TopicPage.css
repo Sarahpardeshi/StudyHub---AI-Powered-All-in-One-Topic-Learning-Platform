@@ -1,6 +1,5 @@
-/* Premium Topic Page Theme */
 .tp-root {
-  min-height: 100vh;
+  height: 100%;
   background-color: #FAFBFC;
   display: flex;
   flex-direction: column;
@@ -813,14 +812,34 @@
 }
 
 .tp-chat-bubble--assistant .tp-chat-bubble {
-  background: #F1F5F9;
+  background: transparent;
   color: #1E293B;
-  border-bottom-left-radius: 4px;
+  border: none;
+  box-shadow: none;
+  max-width: 100%;
+  padding: 0;
+  border-radius: 0;
+}
+
+.tp-chat-bubble--assistant .tp-chat-bubble.loading {
+  background: #F1F5F9;
   border: 1px solid #E2E8F0;
+  padding: 14px 20px;
+  border-radius: 20px;
+  border-bottom-left-radius: 4px;
+  max-width: fit-content;
 }
 
 .tp-chat-bubble p {
   margin: 0;
+}
+
+.tp-chat-bubble--assistant .tp-chat-bubble p {
+  margin-bottom: 1em;
+}
+
+.tp-chat-bubble--assistant .tp-chat-bubble p:last-child {
+  margin-bottom: 0;
 }
 
 /* Typing Animation */
@@ -910,4 +929,29 @@
   background: var(--primary-hover) !important;
   transform: translateY(-2px) !important;
   box-shadow: 0 4px 12px var(--primary-soft) !important;
+}
+
+/* Toast Notification */
+.tp-toast {
+  position: fixed;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: var(--primary);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 50px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  box-shadow: 0 10px 25px var(--primary-soft);
+  z-index: 1000;
+  animation: tp-slideUpFade 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+@keyframes tp-slideUpFade {
+  from { opacity: 0; transform: translate(-50%, 20px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
 }

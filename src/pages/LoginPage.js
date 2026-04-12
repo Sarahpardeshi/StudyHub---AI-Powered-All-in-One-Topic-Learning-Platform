@@ -83,7 +83,7 @@ function LoginPage({ onSwitchToRegister }) {
 
                 {error && <p className="auth-error" style={{ color: '#ef4444', fontSize: '0.85rem', marginBottom: '1rem' }}>{error}</p>}
 
-                <button type="submit" className="auth-btn-primary" style={{ backgroundColor: 'var(--primary)' }}>
+                <button type="submit" className="auth-btn-primary" style={{ backgroundColor: '#4D55CC' }}>
                     Enter Workspace →
                 </button>
             </form>
@@ -102,10 +102,6 @@ function LoginPage({ onSwitchToRegister }) {
                         shape="pill"
                     />
                 </div>
-                <button className="auth-social-btn">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/0/05/Facebook_Logo_%282019%29.png" alt="Facebook" />
-                    Facebook
-                </button>
             </div>
 
             <p className="auth-footer-text">

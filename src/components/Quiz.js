@@ -33,12 +33,26 @@ function Quiz({ questions, onRestart, onSave, topic }) {
     const currentQuestion = questions[currentIndex];
     const progress = ((currentIndex) / questions.length) * 100;
 
+    let correctIdx = Number(currentQuestion.correctIndex);
+    if (isNaN(correctIdx) && typeof currentQuestion.correctIndex === 'string') {
+        const val = currentQuestion.correctIndex.trim();
+        const char = val.toUpperCase();
+        if (char === 'A') correctIdx = 0;
+        else if (char === 'B') correctIdx = 1;
+        else if (char === 'C') correctIdx = 2;
+        else if (char === 'D') correctIdx = 3;
+        else {
+            correctIdx = currentQuestion.options.findIndex(opt => opt === val);
+        }
+    }
+    if (isNaN(correctIdx) || correctIdx < 0) correctIdx = 0;
+
     const handleOptionClick = (index) => {
         if (isAnswered) return;
         setSelectedOption(index);
         setIsAnswered(true);
 
-        const isCorrect = index === currentQuestion.correctIndex;
+        const isCorrect = index === correctIdx;
         if (isCorrect) {
             setScore(score + 1);
         }
@@ -47,7 +61,7 @@ function Quiz({ questions, onRestart, onSave, topic }) {
         setUserAnswers(prev => [...prev, {
             question: currentQuestion.question,
             options: currentQuestion.options,
-            correctIndex: currentQuestion.correctIndex,
+            correctIndex: correctIdx,
             userIndex: index,
             isCorrect
         }]);
@@ -105,9 +119,14 @@ function Quiz({ questions, onRestart, onSave, topic }) {
         <div className="quiz-container">
             {/* Progress */}
             <div className="quiz-progress-wrap">
-                <div className="quiz-progress-label">
+                <div className="quiz-progress-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span>Question {currentIndex + 1} of {questions.length}</span>
-                    <span>{Math.round(progress)}% Complete</span>
+                    <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
+                        <button onClick={onRestart} style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: '13px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            🔄 Regenerate
+                        </button>
+                        <span>{Math.round(progress)}% Complete</span>
+                    </div>
                 </div>
                 <div className="quiz-progress-bar">
                     <div className="quiz-progress-fill" style={{ width: `${progress}% ` }}></div>
@@ -122,7 +141,7 @@ function Quiz({ questions, onRestart, onSave, topic }) {
                     {currentQuestion.options.map((option, idx) => {
                         let statusClass = "";
                         if (isAnswered) {
-                            if (idx === currentQuestion.correctIndex) statusClass = "correct";
+                            if (idx === correctIdx) statusClass = "correct";
                             else if (idx === selectedOption) statusClass = "incorrect";
                         } else if (idx === selectedOption) {
                             statusClass = "selected";
@@ -145,8 +164,8 @@ function Quiz({ questions, onRestart, onSave, topic }) {
                 </div>
 
                 {isAnswered && (
-                    <div className={`quiz-feedback${selectedOption === currentQuestion.correctIndex ? " correct" : " incorrect"}`}>
-                        {selectedOption === currentQuestion.correctIndex ? "✨ Correct! Well done." : "❌ Not quite. The correct answer is highlighted."}
+                    <div className={`quiz-feedback${selectedOption === correctIdx ? " correct" : " incorrect"}`}>
+                        {selectedOption === correctIdx ? "✨ Correct! Well done." : "❌ Not quite. The correct answer is highlighted."}
                     </div>
                 )}
 

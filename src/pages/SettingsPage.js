@@ -19,16 +19,15 @@ import {
     Smartphone,
     RefreshCw,
     Trash2,
-    Plus
+    Plus,
+    LogOut
 } from "lucide-react";
 import "./SettingsPage.css";
 import { useAuth } from "../context/AuthContext.js";
 
 const SIDEBAR_ITEMS = [
     { id: "profile", label: "Profile", icon: <User size={20} /> },
-    { id: "study", label: "Study Settings", icon: <Sparkles size={20} /> },
     { id: "appearance", label: "Appearance", icon: <Palette size={20} /> },
-    { id: "notifications", label: "Notifications", icon: <Bell size={20} /> },
 ];
 
 const COLORS = [
@@ -48,7 +47,7 @@ const setAccentTheme = (colorObj) => {
 };
 
 function SettingsPage({ onBack, user }) {
-    const { updateUser } = useAuth();
+    const { updateUser, logout } = useAuth();
     const [activeTab, setActiveTab] = useState("profile");
     const [explainerStyle, setExplainerStyle] = useState(() => localStorage.getItem('studyhub_explainer_style') || "deep");
     const [complexity, setComplexity] = useState(() => localStorage.getItem('studyhub_complexity') || "Specialist");
@@ -78,11 +77,15 @@ function SettingsPage({ onBack, user }) {
 
     const handleColorChange = (c) => {
         setAccentColor(c.id);
-        setAccentTheme(c);
     };
 
     const handleSave = () => {
         setIsSaving(true);
+        
+        // Apply Accent Theme on Save
+        const selectedColorObj = COLORS.find(c => c.id === accentColor) || COLORS[0];
+        setAccentTheme(selectedColorObj);
+
         // Persist Settings
         localStorage.setItem('studyhub_explainer_style', explainerStyle);
         localStorage.setItem('studyhub_complexity', complexity);
@@ -114,9 +117,9 @@ function SettingsPage({ onBack, user }) {
         const profileData = savedProfile ? JSON.parse(savedProfile) : {};
 
         return {
-            name: profileData.name || user?.username || "Sarah Pardeshi",
+            name: user?.username || profileData.name || "Sarah Pardeshi",
             bio: profileData.bio || user?.bio || "Computer Science student passionate about Machine Learning and AI-driven study tools.",
-            avatar: profileData.avatar || `https://api.dicebear.com/7.x/identicon/svg?seed=${profileData.name || user?.username || "Sarah Pardeshi"}`,
+            avatar: profileData.avatar || `https://api.dicebear.com/7.x/identicon/svg?seed=${user?.username || profileData.name || "Sarah Pardeshi"}`,
             email: user?.email || "sarah.p@university.edu",
             isEmailVerified: true
         };
@@ -273,13 +276,15 @@ function SettingsPage({ onBack, user }) {
                 </nav>
 
                 <div className="settings-sidebar-footer">
-                    <div className="plan-card">
-                        <span className="plan-label">Current Plan</span>
-                        <h4 className="plan-name">Premium Pro AI</h4>
-                        <div className="plan-progress">
-                            <div className="plan-progress-bar" style={{ width: "75%" }}></div>
-                        </div>
-                    </div>
+                    
+                    
+                    <button 
+                        className="settings-logout-btn" 
+                        onClick={logout} 
+                    >
+                        <LogOut size={18} />
+                        Log Out
+                    </button>
                 </div>
             </aside>
 

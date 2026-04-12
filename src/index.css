@@ -8,7 +8,7 @@
   --primary-hover: #4338CA;
   --primary-soft: rgba(79, 70, 229, 0.1);
   --secondary: #8B5CF6;
-  --accent: #06B6D4;
+  --accent: var(--primary);
 
   /* Neutral Palette - Slate/Navy shades for premium feel */
   --bg-main: #FFFFFF;

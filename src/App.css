@@ -37,7 +37,7 @@
 
 /* Auth Pages are handled separately in their components */
 .loading-screen {
-  color: var(--accent);
+  color: var(--primary);
   display: flex;
   justify-content: center;
   align-items: center;

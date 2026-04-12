@@ -91,7 +91,7 @@
     transform: translateX(-50%);
     font-size: 12px;
     letter-spacing: 2px;
-    color: var(--accent);
+    color: var(--primary);
     font-weight: 700;
 }
 
@@ -110,7 +110,7 @@
     transform: translateX(-50%);
     font-size: 12px;
     letter-spacing: 2px;
-    color: var(--accent-secondary);
+    color: var(--primary);
     font-weight: 700;
 }
 
@@ -183,7 +183,7 @@
     border-radius: 12px;
     background: rgba(255, 255, 255, 0.8);
     border: 1px solid rgba(74, 112, 169, 0.1);
-    color: var(--accent);
+    color: var(--primary);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -192,8 +192,8 @@
 }
 
 .fc-nav-btn:hover:not(:disabled) {
-    background: var(--accent-soft);
-    border-color: var(--accent);
+    background: var(--primary-soft);
+    border-color: var(--primary);
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(74, 112, 169, 0.2);
 }
