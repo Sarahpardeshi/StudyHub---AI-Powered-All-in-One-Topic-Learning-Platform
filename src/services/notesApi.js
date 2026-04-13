@@ -340,3 +340,21 @@ function extractJSON(content) {
     return [];
   }
 }
+
+export async function fetchVideoInsights(topic, videoTitle, channel) {
+  const prompt = `Given the topic "${topic}" and the video lesson titled "${videoTitle}" by "${channel}", generate 15-20 specific, high-quality study notes or key technical concepts that are likely covered in this video.
+Return strictly a JSON array of strings, where each string is a unique insight or fact. No other text.`;
+
+  try {
+    const content = await callAIWithFallbacks([
+      { role: "system", content: "You are an expert technical instructor who outputs ONLY valid JSON arrays of strings." },
+      { role: "user", content: prompt }
+    ], 0.6);
+
+    const insights = extractJSON(content);
+    return Array.isArray(insights) ? insights : [];
+  } catch (error) {
+    console.error("Video insights failed:", error);
+    return [];
+  }
+}

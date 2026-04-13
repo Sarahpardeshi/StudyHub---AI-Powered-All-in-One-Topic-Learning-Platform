@@ -367,6 +367,92 @@ app.get("/api/sources", async (req, res) => {
   }
 });
 
+/**
+ * PRIVATE HELPER: Scouting for direct PDF links via Serper
+ */
+async function findPdfLink(title, author) {
+  const apiKey = process.env.SERPER_API_KEY;
+  if (!apiKey) return null;
+
+  try {
+    const q = `${title} ${author || ""} filetype:pdf`;
+    const resp = await fetch("https://google.serper.dev/search", {
+      method: "POST",
+      headers: {
+        "X-API-KEY": apiKey,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ q, num: 8 }), // Check more results for better scoring
+    });
+
+    if (!resp.ok) return null;
+    const data = await resp.json();
+    const organic = data.organic || [];
+    
+    // Scoring logic to find the MOST relevant full book
+    const scoredResults = organic.map(item => {
+      let score = 0;
+      const lowerTitle = (item.title || "").toLowerCase();
+      const lowerSnippet = (item.snippet || "").toLowerCase();
+      const lowerLink = (item.link || "").toLowerCase();
+      const targetTitle = title.toLowerCase();
+      const targetAuthor = (author || "").toLowerCase();
+
+      // 1. Title Overlap (High weight)
+      const titleWords = targetTitle.split(/\s+/).filter(w => w.length > 3);
+      const matches = titleWords.filter(w => lowerTitle.includes(w)).length;
+      score += (matches / titleWords.length) * 40;
+
+      // 2. Author Presence
+      if (targetAuthor && (lowerTitle.includes(targetAuthor) || lowerSnippet.includes(targetAuthor))) {
+        score += 25;
+      }
+
+      // 3. Page Count Detection (Strong indicator of full books)
+      const pageMatch = lowerSnippet.match(/(\d{3,})\s*pages?/i) || lowerSnippet.match(/pp\.?\s*(\d{3,})/i);
+      if (pageMatch && parseInt(pageMatch[1]) > 100) {
+        score += 35;
+      }
+
+      // 4. Domain Reputation
+      const docHosts = ["archive.org", "researchgate.net", "academia.edu", "krishnagudi.com", "dokumen.pub", "pdfstore.in", "github.com", ".edu", ".ac.in", ".edu.py"];
+      if (docHosts.some(host => lowerLink.includes(host))) {
+        score += 15;
+      }
+
+      // 5. Negative Keywords (Summaries / Cheat sheets)
+      const badWords = ["cheat sheet", "summary", "preview", "sample chapter", "chapter 1", "syllabus", "notes"];
+      if (badWords.some(w => lowerTitle.includes(w) || lowerSnippet.includes(w))) {
+        score -= 60;
+      }
+
+      // 6. Direct PDF Link Preference
+      if (lowerLink.endsWith(".pdf")) {
+        score += 10;
+      }
+
+      return { link: item.link, score };
+    });
+
+    // Sort by score and filter out low-confidence results
+    scoredResults.sort((a, b) => b.score - a.score);
+    
+    const bestMatch = scoredResults[0];
+    
+    // STRICT THRESHOLD: 45 means it MUST have a good title match + (Author OR Page Count OR Trusted Host)
+    if (bestMatch && bestMatch.score > 45) {
+      console.log(`[PDF Scout] Found high-confidence match for "${title}": ${bestMatch.link} (Score: ${bestMatch.score.toFixed(1)})`);
+      return bestMatch.link;
+    }
+
+    console.log(`[PDF Scout] No high-confidence PDF for "${title}" (Best score: ${bestMatch ? bestMatch.score.toFixed(1) : 0})`);
+    return null;
+  } catch (err) {
+    console.warn(`Enhanced PDF search failed for ${title}:`, err.message);
+    return null;
+  }
+}
+
 // ---------- EXISTING REFERENCE BOOKS ----------
 const CURATED_BOOKS = {
   "web services": [
@@ -407,8 +493,16 @@ async function fetchBooksFromAI(topic) {
     const data = await resp.json();
     let content = data.choices?.[0]?.message?.content || "";
     content = content.replace(/```json/g, "").replace(/```/g, "").trim();
-    const books = JSON.parse(content);
-    return Array.isArray(books) ? books : null;
+    let books = JSON.parse(content);
+    if (!Array.isArray(books)) return null;
+
+    // SCORING: Enrich AI recommendations with direct PDF scoutings
+    const enhancedBooks = await Promise.all(books.map(async (b) => {
+      const directPdfUrl = await findPdfLink(b.title, b.author);
+      return { ...b, directPdfUrl: directPdfUrl || null };
+    }));
+
+    return enhancedBooks;
   } catch (err) {
     console.error("AI book fallback failed:", err);
     return null;
@@ -442,25 +536,47 @@ app.get("/api/reference-books", async (req, res) => {
     if (items.length === 0) {
       const aiBooks = await fetchBooksFromAI(topic);
       if (aiBooks) return res.json({ books: aiBooks });
-      if (CURATED_BOOKS[lowerTopic]) return res.json({ books: CURATED_BOOKS[lowerTopic] });
+      
+      if (CURATED_BOOKS[lowerTopic]) {
+        const enriched = await Promise.all(CURATED_BOOKS[lowerTopic].map(async b => {
+           const directPdfUrl = await findPdfLink(b.title, b.author);
+           return { ...b, directPdfUrl: directPdfUrl || null };
+        }));
+        return res.json({ books: enriched });
+      }
     }
 
-    const books = items.map((item) => {
+    const books = await Promise.all(items.map(async (item) => {
       const info = item.volumeInfo || {};
+      const title = info.title || "Untitled";
+      const author = (info.authors && info.authors.join(", ")) || "Unknown author";
+      
+      // BACKGROUND SEARCH: Scout for a direct PDF link
+      const directPdfUrl = await findPdfLink(title, author);
+
       return {
-        title: info.title || "Untitled",
-        author: (info.authors && info.authors.join(", ")) || "Unknown author",
+        title,
+        author,
         link: info.infoLink || "",
+        directPdfUrl: directPdfUrl || null,
         thumbnail: info.imageLinks?.thumbnail || "",
         source: "google-books",
       };
-    });
+    }));
+
     return res.json({ books });
   } catch (err) {
     console.error("Error in /api/reference-books:", err);
     const aiBooks = await fetchBooksFromAI(topic);
     if (aiBooks) return res.json({ books: aiBooks });
-    if (CURATED_BOOKS[lowerTopic]) return res.json({ books: CURATED_BOOKS[lowerTopic] });
+    
+    if (CURATED_BOOKS[lowerTopic]) {
+      const enriched = await Promise.all(CURATED_BOOKS[lowerTopic].map(async b => {
+         const directPdfUrl = await findPdfLink(b.title, b.author);
+         return { ...b, directPdfUrl: directPdfUrl || null };
+      }));
+      return res.json({ books: enriched });
+    }
     return res.status(500).json({ error: "Failed to load reference books" });
   }
 });
