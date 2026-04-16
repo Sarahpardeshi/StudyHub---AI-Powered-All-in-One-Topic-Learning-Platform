@@ -3,14 +3,12 @@ import {
     Compass,
     Zap,
     Search,
-    Map,
     BookOpen,
     Atom,
     Code,
     Briefcase,
     Palette,
     Globe,
-    Star,
     ArrowRight,
     RefreshCw
 } from 'lucide-react';
@@ -25,26 +23,6 @@ const CATEGORIES = [
     { id: 'math', name: 'Mathematics', icon: <BookOpen size={24} />, color: '#10B981', count: '420 topics' },
 ];
 
-const KNOWLEDGE_JOURNEYS = [
-    {
-        title: "Mastering AI from Scratch",
-        steps: ["Basics of Python", "Linear Algebra", "Machine Learning 101", "Neural Networks"],
-        difficulty: "Advanced",
-        duration: "4 weeks"
-    },
-    {
-        title: "Modern Web Engineering",
-        steps: ["React Fundamentals", "Node.js Backend", "GraphQL APIs", "DevOps Basics"],
-        difficulty: "Intermediate",
-        duration: "3 weeks"
-    },
-    {
-        title: "Astrophysics for Starters",
-        steps: ["Solar System", "Star Life Cycles", "Black Holes", "General Relativity"],
-        difficulty: "Beginner",
-        duration: "2 weeks"
-    }
-];
 
 const CONCEPTS = [
     {
@@ -155,36 +133,6 @@ function ExplorePage({ onStartTopic }) {
                 </div>
             </section>
 
-            {/* Trending Knowledge Journeys */}
-            <section className="explore-section">
-                <div className="section-header">
-                    <h2 className="section-title">Knowledge Journeys</h2>
-                    <p className="section-subtitle">Structured roadmaps curated for comprehensive mastery</p>
-                </div>
-                <div className="journeys-list">
-                    {KNOWLEDGE_JOURNEYS.map((journey, idx) => (
-                        <div
-                            key={idx}
-                            className="journey-card"
-                            onClick={() => onStartTopic(journey.title)}
-                        >
-                            <div className="journey-meta">
-                                <span className="journey-difficulty">{journey.difficulty}</span>
-                                <span className="journey-duration">{journey.duration}</span>
-                            </div>
-                            <h3 className="journey-title">{journey.title}</h3>
-                            <div className="journey-steps">
-                                {journey.steps.map((step, sIdx) => (
-                                    <span key={sIdx} className="journey-step-tag">{step}</span>
-                                ))}
-                            </div>
-                            <button className="journey-start-btn">
-                                Start Journey <ArrowRight size={16} />
-                            </button>
-                        </div>
-                    ))}
-                </div>
-            </section>
 
             {/* Floating Surprise Button (Extra accessibility) */}
             <button className="floating-surprise-fab" onClick={handleSurpriseMe} title="Surprise Me!">
