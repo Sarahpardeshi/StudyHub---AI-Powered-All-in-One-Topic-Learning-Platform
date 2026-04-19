@@ -342,8 +342,14 @@ function extractJSON(content) {
 }
 
 export async function fetchVideoInsights(topic, videoTitle, channel) {
-  const prompt = `Given the topic "${topic}" and the video lesson titled "${videoTitle}" by "${channel}", generate 15-20 specific, high-quality study notes or key technical concepts that are likely covered in this video.
-Return strictly a JSON array of strings, where each string is a unique insight or fact. No other text.`;
+  const prompt = `You are a transcript analysis engine. The student is watching the video lesson "${videoTitle}" by "${channel}" on the topic of "${topic}".
+  
+  TASK: Generate 15-20 HIGHLY SPECIFIC study notes or key technical concepts that are directly mentioned or demonstrated in this specific video. 
+  - AVOID generic definitions of "${topic}". 
+  - FOCUS on the unique examples, technical implementation details, or pedagogical steps unique to "${channel}".
+  - Format the notes as if you are live-analyzing the lecture.
+
+  RETURN strictly a JSON array of strings (the notes). No other text.`;
 
   try {
     const content = await callAIWithFallbacks([

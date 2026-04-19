@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { RefreshCw, RotateCcw, Star } from "lucide-react";
 import "./Quiz.css";
 
 function Quiz({ questions, onRestart, onSave, topic }) {
@@ -94,20 +95,20 @@ function Quiz({ questions, onRestart, onSave, topic }) {
                         You got <strong>{score}</strong> out of <strong>{questions.length}</strong> questions correct.
                     </p>
 
-                    <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+                    <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', marginTop: '20px' }}>
                         <button className="quiz-restart-btn" onClick={onRestart}>
-                            Take Quiz Again
+                            <RotateCcw size={16} /> Take Quiz Again
                         </button>
                         <button
-                            className="quiz-restart-btn"
-                            style={{ background: 'var(--primary)' }}
+                            className="quiz-restart-btn primary-save"
+                            style={{ background: 'var(--primary)', border: 'none', shadow: '0 4px 12px rgba(var(--primary-rgb), 0.2)' }}
                             onClick={() => onSave(`Quiz Results: ${topic} (${finalPercentage}%)`, {
                                 score,
                                 total: questions.length,
                                 questions: userAnswers // Use the tracked answers with user selections
                             })}
                         >
-                            ★ Save to Library
+                            <Star size={16} /> Save to Library
                         </button>
                     </div>
                 </div>
@@ -122,8 +123,26 @@ function Quiz({ questions, onRestart, onSave, topic }) {
                 <div className="quiz-progress-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span>Question {currentIndex + 1} of {questions.length}</span>
                     <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
-                        <button onClick={onRestart} style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: '13px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                            🔄 Regenerate
+                        <button 
+                            onClick={onRestart} 
+                            style={{ 
+                                background: 'none', 
+                                border: 'none', 
+                                color: 'var(--primary)', 
+                                cursor: 'pointer', 
+                                fontSize: '13px', 
+                                fontWeight: '700', 
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                gap: '6px',
+                                padding: '4px 8px',
+                                borderRadius: '4px',
+                                transition: 'background 0.2s'
+                            }}
+                            onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(var(--primary-rgb), 0.1)'}
+                            onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
+                        >
+                            <RefreshCw size={14} /> Regenerate
                         </button>
                         <span>{Math.round(progress)}% Complete</span>
                     </div>

@@ -56,8 +56,6 @@ function SettingsPage({ onBack, user }) {
     });
     const [isSaving, setIsSaving] = useState(false);
     const [saveSuccess, setSaveSuccess] = useState(false);
-    const [showEmailModal, setShowEmailModal] = useState(false);
-    const [showPasswordModal, setShowPasswordModal] = useState(false);
     const [showAvatarModal, setShowAvatarModal] = useState(false);
 
     // Camera States
@@ -124,30 +122,6 @@ function SettingsPage({ onBack, user }) {
             isEmailVerified: true
         };
     });
-
-    const [passwords, setPasswords] = useState({
-        old: "",
-        new: "",
-        confirm: ""
-    });
-
-    const handleUpdateEmail = (newEmail) => {
-        setProfile({ ...profile, email: newEmail });
-        setShowEmailModal(false);
-        // Persist email immediately as it's a critical change
-        localStorage.setItem('studyhub_user_profile', JSON.stringify({
-            ...profile,
-            email: newEmail
-        }));
-    };
-
-    const handleUpdatePassword = () => {
-        // Mock password update
-        setShowPasswordModal(false);
-        setPasswords({ old: "", new: "", confirm: "" });
-        setSaveSuccess(true);
-        setTimeout(() => setSaveSuccess(false), 2000);
-    };
 
     const toggleSetting = (key) => {
         setAutomaticSettings(prev => ({ ...prev, [key]: !prev[key] }));
@@ -353,12 +327,6 @@ function SettingsPage({ onBack, user }) {
                                             <div className="current-email-display">{profile.email}</div>
                                         </div>
                                     </div>
-                                    <button
-                                        className="premium-outline-btn"
-                                        onClick={() => setShowEmailModal(true)}
-                                    >
-                                        Update Email
-                                    </button>
                                 </div>
 
                                 <div className="email-card-inner">
@@ -371,86 +339,10 @@ function SettingsPage({ onBack, user }) {
                                             <div className="current-email-display">••••••••••••</div>
                                         </div>
                                     </div>
-                                    <button
-                                        className="premium-outline-btn"
-                                        onClick={() => setShowPasswordModal(true)}
-                                    >
-                                        Change Password
-                                    </button>
                                 </div>
                             </div>
                         </div>
 
-                        {showPasswordModal && (
-                            <div className="settings-modal-overlay">
-                                <div className="settings-modal-card">
-                                    <div className="modal-header">
-                                        <h3>Change Access Password</h3>
-                                        <button className="close-btn" onClick={() => setShowPasswordModal(false)}><X size={20} /></button>
-                                    </div>
-                                    <div className="modal-body">
-                                        <div className="input-group">
-                                            <label>Current Password</label>
-                                            <input
-                                                type="password"
-                                                value={passwords.old}
-                                                onChange={(e) => setPasswords({ ...passwords, old: e.target.value })}
-                                                placeholder="••••••••"
-                                            />
-                                        </div>
-                                        <div className="input-group">
-                                            <label>New Password</label>
-                                            <input
-                                                type="password"
-                                                value={passwords.new}
-                                                onChange={(e) => setPasswords({ ...passwords, new: e.target.value })}
-                                                placeholder="••••••••"
-                                            />
-                                        </div>
-                                        <div className="input-group">
-                                            <label>Confirm New Password</label>
-                                            <input
-                                                type="password"
-                                                value={passwords.confirm}
-                                                onChange={(e) => setPasswords({ ...passwords, confirm: e.target.value })}
-                                                placeholder="••••••••"
-                                            />
-                                        </div>
-                                    </div>
-                                    <div className="modal-footer">
-                                        <button className="cancel-text-btn" onClick={() => setShowPasswordModal(false)}>Cancel</button>
-                                        <button className="confirm-action-btn" onClick={handleUpdatePassword}>Update Credentials</button>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {showEmailModal && (
-                            <div className="settings-modal-overlay">
-                                <div className="settings-modal-card">
-                                    <div className="modal-header">
-                                        <h3>Update Primary Email</h3>
-                                        <button className="close-btn" onClick={() => setShowEmailModal(false)}><X size={20} /></button>
-                                    </div>
-                                    <div className="modal-body">
-                                        <p className="modal-intro">Enter your new primary email address. You may need to verify this email to keep your account active.</p>
-                                        <div className="input-group">
-                                            <label>New Email Address</label>
-                                            <input
-                                                type="email"
-                                                defaultValue={profile.email}
-                                                onChange={(e) => setProfile({ ...profile, email: e.target.value })}
-                                                placeholder="new.email@example.com"
-                                            />
-                                        </div>
-                                    </div>
-                                    <div className="modal-footer">
-                                        <button className="cancel-text-btn" onClick={() => setShowEmailModal(false)}>Cancel</button>
-                                        <button className="confirm-action-btn" onClick={() => handleUpdateEmail(profile.email)}>Update Email</button>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
 
                         {showAvatarModal && (
                             <div className="settings-modal-overlay">

@@ -60,7 +60,7 @@ function Header({ topic, onSearch, onHome, onOpenLibrary, onOpenExplore, onOpenW
                         style={{ cursor: 'pointer' }}
                         title="Profile & Settings"
                     >
-                        {user?.avatar && !user.avatar.includes('dicebear') ? (
+                        {user?.avatar ? (
                             <img src={user.avatar} alt="User" className="header-user-avatar-img" />
                         ) : (
                             <div className="header-user-avatar">{user?.username?.[0]?.toUpperCase() || 'U'}</div>

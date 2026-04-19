@@ -1167,33 +1167,44 @@
 }
 
 .tp-live-analysis-badge {
-  position: absolute;
-  right: 0;
   display: flex;
   align-items: center;
   gap: 6px;
-  background: #FEF2F2;
-  color: #DC2626;
-  padding: 4px 8px;
+  background: #FFF1F2;
+  color: #E11D48;
+  padding: 4px 10px;
   border-radius: 20px;
-  font-size: 0.65rem;
+  font-size: 0.7rem;
   font-weight: 800;
-  letter-spacing: 0.5px;
-  border: 1px solid #FEE2E2;
+  letter-spacing: 0.05em;
+  border: 1px solid #FFE4E6;
+  white-space: nowrap;
+  transition: all 0.3s ease;
+}
+
+.tp-live-analysis-badge.paused {
+  background: #FFFBEB;
+  color: #D97706;
+  border-color: #FEF3C7;
 }
 
 .tp-live-dot {
   width: 6px;
   height: 6px;
-  background: #DC2626;
+  background: #E11D48;
   border-radius: 50%;
-  animation: tp-pulse-red 1.5s infinite;
+  animation: tp-blink 1.5s infinite;
 }
 
-@keyframes tp-pulse-red {
-  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7); }
-  70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(220, 38, 38, 0); }
-  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
+.tp-live-analysis-badge.paused .tp-live-dot {
+  background: #D97706;
+  animation: none;
+}
+
+@keyframes tp-blink {
+  0% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.8); }
+  100% { opacity: 1; transform: scale(1); }
 }
 
 .tp-analysis-card-icon {
@@ -1371,4 +1382,115 @@
   0% { transform: scale(1.1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
   70% { transform: scale(1.2); box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
   100% { transform: scale(1.1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
+/* --- WORLD CLASS YOUTUBE UX SUITE --- */
+
+@keyframes tp-stagger-fade {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Skeleton Loading State */
+.tp-skeleton-card {
+  background: white;
+  border-radius: 24px;
+  overflow: hidden;
+  border: 1px solid #f1f5f9;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.tp-skeleton-thumb {
+  width: 100%;
+  aspect-ratio: 16/9;
+  background: linear-gradient(90deg, #f1f5f9 25%, #f8fafc 50%, #f1f5f9 75%);
+  background-size: 200% 100%;
+  animation: tp-shimmer 2s infinite linear;
+}
+
+.tp-skeleton-info {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tp-skeleton-line {
+  height: 14px;
+  background: #f1f5f9;
+  border-radius: 7px;
+  position: relative;
+  overflow: hidden;
+}
+
+.tp-skeleton-line::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+  animation: tp-shimmer 2s infinite;
+}
+
+.tp-skeleton-line.short { width: 60%; }
+
+@keyframes tp-shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* Premium Video Cards */
+.tp-video-card {
+  background: #ffffff;
+  border-radius: 24px;
+  overflow: hidden;
+  border: 1px solid #f1f5f9;
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
+  animation: tp-stagger-fade 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.tp-video-card:hover {
+  transform: translateY(-10px) scale(1.02);
+  box-shadow: 0 30px 60px -12px rgba(99, 102, 241, 0.15), 0 18px 36px -18px rgba(0, 0, 0, 0.2);
+  border-color: rgba(99, 102, 241, 0.2);
+}
+
+.tp-video-thumb {
+  position: relative;
+  overflow: hidden;
+  background: #000;
+}
+
+.tp-video-thumb img {
+  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.tp-video-card:hover .tp-video-thumb img {
+  transform: scale(1.1);
+  opacity: 0.7;
+}
+
+.tp-video-play-hint {
+  background: rgba(255, 255, 255, 0.15) !important;
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.tp-video-info h3 {
+  font-family: 'Inter', sans-serif;
+  letter-spacing: -0.01em;
+  font-size: 1rem;
+  color: #0f172a;
+}
+
+.tp-video-info p {
+  color: #64748b;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
 }

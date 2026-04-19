@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { RefreshCw } from 'lucide-react';
 import '../pages/Flashcards.css';
 
 const Flashcard = ({ card, onFlip, isFlipped }) => {
@@ -65,8 +66,34 @@ const FlashcardDeck = ({ cards = [], onRegenerate }) => {
         <div className="fc-deck-container">
             <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%', maxWidth: '600px', marginBottom: '15px' }}>
                 {onRegenerate && (
-                    <button onClick={onRegenerate} style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: '13px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        🔄 Regenerate
+                    <button 
+                        onClick={onRegenerate} 
+                        className="fc-regenerate-btn"
+                        style={{ 
+                            background: 'none', 
+                            border: 'none', 
+                            color: 'var(--primary)', 
+                            cursor: 'pointer', 
+                            fontSize: '13px', 
+                            fontWeight: '700', 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            gap: '6px',
+                            padding: '6px 10px',
+                            borderRadius: '6px',
+                            transition: 'all 0.2s',
+                            opacity: 0.8
+                        }}
+                        onMouseEnter={(e) => {
+                            e.currentTarget.style.background = 'rgba(var(--primary-rgb), 0.1)';
+                            e.currentTarget.style.opacity = '1';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.background = 'none';
+                            e.currentTarget.style.opacity = '0.8';
+                        }}
+                    >
+                        <RefreshCw size={14} /> Regenerate
                     </button>
                 )}
             </div>

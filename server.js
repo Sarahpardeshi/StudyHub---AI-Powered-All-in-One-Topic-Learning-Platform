@@ -375,7 +375,7 @@ async function findPdfLink(title, author) {
   if (!apiKey) return null;
 
   try {
-    const q = `${title} ${author || ""} filetype:pdf`;
+    const q = `${title} Doctype:pdf`;
     const resp = await fetch("https://google.serper.dev/search", {
       method: "POST",
       headers: {

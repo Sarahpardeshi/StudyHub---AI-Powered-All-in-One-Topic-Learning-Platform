@@ -20,10 +20,27 @@ export const AuthProvider = ({ children }) => {
     }, []);
 
     const login = (authToken, userData) => {
+        // Attempt to merge with any locally saved profile data (like avatar)
+        // because the mock/sample server might not persist profile images.
+        const storedProfileStr = localStorage.getItem('studyhub_user_profile');
+        let finalUserData = { ...userData };
+        
+        if (storedProfileStr) {
+            try {
+                const storedProfile = JSON.parse(storedProfileStr);
+                // If it's the same user (by email or name), merge the avatar
+                if (storedProfile.email === userData.email || storedProfile.name === userData.username) {
+                    finalUserData = { ...userData, avatar: storedProfile.avatar, bio: storedProfile.bio };
+                }
+            } catch (e) {
+                console.error("Error parsing local profile during login sync", e);
+            }
+        }
+
         setToken(authToken);
-        setUser(userData);
+        setUser(finalUserData);
         localStorage.setItem("auth_token", authToken);
-        localStorage.setItem("auth_user", JSON.stringify(userData));
+        localStorage.setItem("auth_user", JSON.stringify(finalUserData));
     };
 
     const logout = () => {

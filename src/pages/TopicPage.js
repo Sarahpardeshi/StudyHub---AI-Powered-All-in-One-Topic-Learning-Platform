@@ -22,7 +22,8 @@ import {
   ArrowLeft,
   Share2,
   FileText,
-  Layout
+  Layout,
+  RefreshCw
 } from "lucide-react";
 
 import FlashcardDeck from "../components/FlashcardDeck.js";
@@ -120,6 +121,7 @@ function TopicPage({ topic, onBack, historyItem, onUpdateHistory, initialState }
   const [quizzes, setQuizzes] = useState(null);
   const [quizzesLoading, setQuizzesLoading] = useState(false);
   const [videos, setVideos] = useState([]);
+  const [visibleVideosCount, setVisibleVideosCount] = useState(6);
   const [videoError, setVideoError] = useState(null);
   const [readingList, setReadingList] = useState(null);
   const [readingListLoading, setReadingListLoading] = useState(false);
@@ -172,6 +174,7 @@ function TopicPage({ topic, onBack, historyItem, onUpdateHistory, initialState }
       setFlashcards(null);
       setQuizzes(null);
       setVideos([]);
+      setVisibleVideosCount(6);
       setReadingList([]);
       setChatMessages([]);
 
@@ -257,7 +260,7 @@ function TopicPage({ topic, onBack, historyItem, onUpdateHistory, initialState }
         setWebSourcesLoading(false);
       });
     }
-  }, [activePanel, topic, notes, videos.length, readingList, webSources, flashcards, quizzes]);
+  }, [activePanel, topic, notes, videos.length, readingList, webSources, flashcards, quizzes, flashcardsLoading, quizzesLoading, readingListLoading, webSourcesLoading]);
 
   useEffect(() => {
     if (chatContainerRef.current) {
@@ -585,39 +588,101 @@ function TopicPage({ topic, onBack, historyItem, onUpdateHistory, initialState }
           return (
             <div className="tp-empty-state">
               <p>🎥 {videoError}</p>
-              <button className="tp-retry-btn" onClick={() => retryFetch("YouTube Videos")}>🔄 Retry Loading</button>
+              <button 
+                className="tp-retry-btn" 
+                onClick={() => retryFetch("YouTube Videos")}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '10px 20px',
+                  background: 'var(--primary)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '12px',
+                  cursor: 'pointer',
+                  fontWeight: '600'
+                }}
+              >
+                <RefreshCw size={16} /> Retry Discovery
+              </button>
             </div>
           );
         }
         return (
-          <div className="tp-videos-grid">
-            {videos.length > 0 ? (
-              videos.map(v => (
-                <div key={v.id} className="tp-video-card">
-                  <div className="tp-video-thumb" onClick={() => setSelectedVideo(v)}>
-                    <img src={v.thumbnail} alt={v.title} />
-                    <div className="tp-video-play-hint">▶</div>
-                    <button
-                      className="tp-item-save-btn"
-                      title="Save Video"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleSaveToLibrary(v.title, v, "video");
-                      }}
-                    >
-                      <Star size={16} />
-                    </button>
+          <div className="tp-videos-container" style={{display: 'flex', flexDirection: 'column', gap: '30px'}}>
+            <div className="tp-videos-grid">
+              {videos.length > 0 ? (
+                videos.slice(0, visibleVideosCount).map((v, idx) => (
+                  <div key={v.id} className="tp-video-card" style={{animationDelay: `${idx * 0.1}s`}}>
+                    <div className="tp-video-thumb" onClick={() => setSelectedVideo(v)}>
+                      <img src={v.thumbnail} alt={v.title} loading="lazy" />
+                      <div className="tp-video-play-hint">
+                         <Youtube size={32} fill="white" />
+                      </div>
+                      <button
+                        className="tp-item-save-btn"
+                        title="Save Video"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleSaveToLibrary(v.title, v, "video");
+                        }}
+                      >
+                        <Star size={16} />
+                      </button>
+                    </div>
+                    <div className="tp-video-info" onClick={() => setSelectedVideo(v)}>
+                      <h3>{v.title}</h3>
+                      <p>{v.channel}</p>
+                    </div>
                   </div>
-                  <div className="tp-video-info" onClick={() => setSelectedVideo(v)}>
-                    <h3>{v.title}</h3>
-                    <p>{v.channel}</p>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="tp-loading-state">
-                <div className="tp-spinner"></div>
-                <p>Finding the best video lessons for you...</p>
+                ))
+              ) : (
+                <>
+                  {[...Array(6)].map((_, i) => (
+                    <div key={i} className="tp-skeleton-card">
+                      <div className="tp-skeleton-thumb"></div>
+                      <div className="tp-skeleton-info">
+                        <div className="tp-skeleton-line"></div>
+                        <div className="tp-skeleton-line short"></div>
+                      </div>
+                    </div>
+                  ))}
+                </>
+              )}
+            </div>
+            
+            {videos.length > visibleVideosCount && (
+              <div className="tp-load-more-section" style={{display: 'flex', justifyContent: 'center', paddingBottom: '20px'}}>
+                 <button 
+                  className="tp-load-more-btn"
+                  onClick={() => setVisibleVideosCount(prev => prev + 6)}
+                  style={{
+                    padding: '12px 30px',
+                    borderRadius: '14px',
+                    background: 'var(--primary)',
+                    color: 'white',
+                    border: 'none',
+                    fontWeight: '800',
+                    fontSize: '0.9rem',
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 15px rgba(99, 102, 241, 0.3)',
+                    transition: 'all 0.3s cubic-bezier(0.23, 1, 0.32, 1)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.transform = 'translateY(-2px) scale(1.02)';
+                    e.target.style.boxShadow = '0 6px 20px rgba(99, 102, 241, 0.4)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.transform = 'translateY(0) scale(1)';
+                    e.target.style.boxShadow = '0 4px 15px rgba(99, 102, 241, 0.3)';
+                  }}
+                 >
+                   <Youtube size={18} /> LOAD MORE VIDEOS
+                 </button>
               </div>
             )}
           </div>
@@ -637,7 +702,7 @@ function TopicPage({ topic, onBack, historyItem, onUpdateHistory, initialState }
               readingList.map((b, index) => (
                 <a
                   key={index}
-                  href={b.directPdfUrl || `https://www.google.com/search?q=${encodeURIComponent(b.title + ' ' + (b.author || '') + ' Doctype:pdf')}`}
+                  href={b.directPdfUrl || `https://www.google.com/search?q=${encodeURIComponent(b.title + ' Doctype:pdf')}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="tp-book-card-link"
@@ -859,7 +924,6 @@ function TopicPage({ topic, onBack, historyItem, onUpdateHistory, initialState }
     </div>
   );
 }
-
 const VideoAnalysisMode = ({ video, onClose, topicNotes, topicSummary, onSave }) => {
   const [copied, setCopied] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
@@ -868,8 +932,66 @@ const VideoAnalysisMode = ({ video, onClose, topicNotes, topicSummary, onSave })
   const [allVideoInsights, setAllVideoInsights] = useState([]);
   const currentInsightsRef = useRef([]);
   const [isGeneratingNote, setIsGeneratingNote] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false); // NEW: Track playback
+  const playerRef = useRef(null);
   const notesEndRef = useRef(null);
   const sidebarContentRef = useRef(null);
+  const playerDivRef = useRef(null); // Direct DOM ref for stability
+  const nextIndexRef = useRef(2); 
+
+  // 0. Load YouTube IFrame API
+  useEffect(() => {
+    if (!video?.id) return;
+
+    if (!window.YT) {
+      const tag = document.createElement('script');
+      tag.src = "https://www.youtube.com/iframe_api";
+      const firstScriptTag = document.getElementsByTagName('script')[0];
+      firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+    }
+
+    const initPlayer = () => {
+      if (playerRef.current) playerRef.current.destroy();
+      
+      console.log("[YT API] Creating player for:", video.id);
+      playerRef.current = new window.YT.Player(playerDivRef.current, {
+        videoId: video.id,
+        playerVars: {
+          autoplay: 1,
+          rel: 0,
+          modestbranding: 1,
+          origin: window.location.origin,
+          enablejsapi: 1
+        },
+        events: {
+          onReady: (event) => {
+            event.target.playVideo();
+            setIsPlaying(true);
+          },
+          onStateChange: (event) => {
+            if (event.data === 1) setIsPlaying(true); // 1 = PLAYING
+            else setIsPlaying(false);
+          },
+          onError: (e) => {
+            console.error("[YT API] Player Error:", e.data);
+          }
+        }
+      });
+    };
+
+    if (window.YT && window.YT.Player) {
+      initPlayer();
+    } else {
+      window.onYouTubeIframeAPIReady = initPlayer;
+    }
+
+    return () => {
+       if (playerRef.current && playerRef.current.destroy) {
+         playerRef.current.destroy();
+         playerRef.current = null;
+       }
+    };
+  }, [video?.id]);
 
   // Sync ref with state
   useEffect(() => {
@@ -897,7 +1019,7 @@ const VideoAnalysisMode = ({ video, onClose, topicNotes, topicSummary, onSave })
     }
   }, [streamedNotes, isGeneratingNote]);
   
-  // Main Effect: Extraction Logic
+  // Main Effect 1: Initial Reset & Burst (Only when Video Changes)
   useEffect(() => {
     if (!video) return;
 
@@ -907,32 +1029,43 @@ const VideoAnalysisMode = ({ video, onClose, topicNotes, topicSummary, onSave })
           .map(n => n.replace(/^[-*]\s*/, ""))
       : ["Understanding the fundamental concepts", "Key terminology and definitions", "Core principles of the topic", "Advanced implementation patterns", "Common pitfalls and optimizations"];
 
-    // 1. Initial burst: Quick load of first 2 notes
+    // Reset everything for the new video
     setIsAnalyzing(true);
     setStreamedNotes([]);
+    nextIndexRef.current = 2; // Reset index back to after the burst
     
     const initialTimeout = setTimeout(() => {
       setStreamedNotes(rawNotes.slice(0, 2));
       setIsAnalyzing(false);
     }, 2000);
 
-    // 2. Continuous Pulse: Add a new note every 15-25 seconds
-    let nextIndex = 2;
+    return () => clearTimeout(initialTimeout);
+  }, [video?.id]); // ONLY trigger on video change
+
+  // Main Effect 2: Playback-Synced Pulse (Responsive to Pause/Play)
+  useEffect(() => {
+    if (!video || streamedNotes.length === 0) return;
+
+    const rawNotes = topicNotes 
+      ? topicNotes.split("\n")
+          .filter(line => line.trim().startsWith("-") || line.trim().startsWith("*"))
+          .map(n => n.replace(/^[-*]\s*/, ""))
+      : ["Understanding the fundamental concepts", "Key terminology and definitions", "Core principles of the topic", "Advanced implementation patterns", "Common pitfalls and optimizations"];
+
+    // Continuous Pulse: Add a new note every 18 seconds ONLY IF PLAYING
     const pulseInterval = setInterval(() => {
-      // Prioritize Video Specific Insights for Accuracy (using Ref to avoid stale closure)
+      if (!window.YT || !isPlaying) return; // SKIP if paused or not ready
+
       const currentSource = currentInsightsRef.current.length > 0 ? currentInsightsRef.current : rawNotes;
       
-      if (nextIndex < currentSource.length) {
+      if (nextIndexRef.current < currentSource.length) {
         setIsGeneratingNote(true);
-        
-        // Simulate "Thinking" time for the live generation
         setTimeout(() => {
-          setStreamedNotes(prev => [...prev, currentSource[nextIndex]]);
+          setStreamedNotes(prev => [...prev, currentSource[nextIndexRef.current]]);
           setIsGeneratingNote(false);
-          nextIndex++;
+          nextIndexRef.current++;
         }, 3000);
       } else {
-        // If we really run out of EVERYTHING, do a very high-quality generation check
         setIsGeneratingNote(true);
         setTimeout(() => {
           const fallbackInsights = [
@@ -948,18 +1081,16 @@ const VideoAnalysisMode = ({ video, onClose, topicNotes, topicSummary, onSave })
           setIsGeneratingNote(false);
         }, 5000);
       }
-    }, 18000); // New note approx every 18 seconds
+    }, 18000); 
 
-    return () => {
-      clearTimeout(initialTimeout);
-      clearInterval(pulseInterval);
-    };
-  }, [video?.id, topicNotes, video.title]);
+    return () => clearInterval(pulseInterval);
+  }, [video?.id, isPlaying, streamedNotes.length > 0]); // Trigger when playback changes
 
   if (!video) return null;
 
   const videoId = video.id;
-  const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`;
+  const origin = window.location.origin;
+  const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&enablejsapi=1&origin=${origin}&widget_referrer=${origin}`;
   const shareUrl = `https://www.youtube.com/watch?v=${videoId}`;
 
   const handleShare = () => {
@@ -992,12 +1123,7 @@ const VideoAnalysisMode = ({ video, onClose, topicNotes, topicSummary, onSave })
       <main className="tp-video-analysis-content" style={{ paddingTop: '40px' }}>
         <section className="tp-video-analysis-player-section">
           <div className="tp-video-player-container">
-            <iframe
-              src={embedUrl}
-              title={video.title}
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            ></iframe>
+            <div ref={playerDivRef}></div>
           </div>
 
           <div className="tp-video-details-card">
@@ -1057,9 +1183,9 @@ const VideoAnalysisMode = ({ video, onClose, topicNotes, topicSummary, onSave })
                 <Layout size={18} />
               </div>
               <h3>Smart Notes</h3>
-              <div className="tp-live-analysis-badge">
+              <div className={`tp-live-analysis-badge ${!isPlaying ? 'paused' : ''}`}>
                 <div className="tp-live-dot"></div>
-                LIVE ANALYSIS
+                {isPlaying ? "LIVE ANALYSIS" : "PAUSED"}
               </div>
             </div>
             <div className="tp-analysis-card-content" ref={sidebarContentRef} style={{ flex: 1, overflowY: 'auto', marginTop: '10px', paddingRight: '12px' }}>
