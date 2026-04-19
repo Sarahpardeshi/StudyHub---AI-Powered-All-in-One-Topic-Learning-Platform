@@ -3,8 +3,6 @@ import {
     User,
     Sparkles,
     Palette,
-    Bell,
-    Shield,
     Zap,
     Book,
     CheckCircle2,
@@ -16,8 +14,6 @@ import {
     Camera,
     Lock,
     Mail,
-    Smartphone,
-    RefreshCw,
     Trash2,
     Plus,
     LogOut
@@ -174,13 +170,13 @@ function SettingsPage({ onBack, user }) {
         }
     }, [isCameraActive, cameraStream]);
 
-    const stopCamera = () => {
+    const stopCamera = React.useCallback(() => {
         if (cameraStream) {
             cameraStream.getTracks().forEach(track => track.stop());
             setCameraStream(null);
         }
         setIsCameraActive(false);
-    };
+    }, [cameraStream]);
 
     const capturePhoto = () => {
         const canvas = document.createElement('canvas');
@@ -228,7 +224,7 @@ function SettingsPage({ onBack, user }) {
 
     useEffect(() => {
         return () => stopCamera();
-    }, []);
+    }, [stopCamera]);
 
     return (
         <div className="settings-root">

@@ -17,7 +17,7 @@ function RegisterPage({ onSwitchToLogin }) {
     const getPasswordRequirements = (pass) => {
         const requirements = {
             length: pass.length >= 6,
-            special: /[@_.\!#\$%\^&\*]/.test(pass)
+            special: /[@_.!#$%^&*]/.test(pass)
         };
         return requirements;
     };

@@ -5,7 +5,7 @@ import SearchBar from "../components/SearchBar.js";
 import { fetchYoutubeVideos } from "../services/youtubeApi.js";
 import { VideoAutoSlider } from "../components/ui/video-auto-slider.js";
 import { AuroraBackground } from "../components/ui/aurora-background.js";
-import { Github, Twitter, Linkedin, ExternalLink, Mail, Info, Clock } from "lucide-react";
+import { Github, Twitter, Linkedin } from "lucide-react";
 import { SuggestedTopicGrid } from "../components/SuggestedTopicGrid.js";
 
 import logo from "../assets/studyhub_logo.png";
@@ -98,7 +98,7 @@ function LandingPage({ onStartTopic, onOpenExplore, history = [] }) {
       }
     };
     loadSuggestions();
-  }, [history.length]);
+  }, [history.length, recentSearches]);
 
 
   return (
@@ -193,9 +193,9 @@ function LandingPage({ onStartTopic, onOpenExplore, history = [] }) {
                 The ultimate AI-powered workspace for mastering complex topics faster than ever before.
               </p>
               <div className="lp-footer-social">
-                <a href="#"><Twitter size={18} /></a>
-                <a href="#"><Github size={18} /></a>
-                <a href="#"><Linkedin size={18} /></a>
+                <a href="#!"><Twitter size={18} /></a>
+                <a href="#!"><Github size={18} /></a>
+                <a href="#!"><Linkedin size={18} /></a>
               </div>
             </div>
 

@@ -1,6 +1,6 @@
 import React from "react";
 import SearchBar from "./SearchBar.js";
-import { Settings, Menu } from "lucide-react";
+import { Menu } from "lucide-react";
 import "./Header.css";
 
 import logo from "../assets/studyhub_logo.png";

@@ -3,11 +3,10 @@ import "./TopicPage.css";
 import { useAuth } from "../context/AuthContext.js";
 
 import { fetchTopicSummary } from "../services/summaryApi.js";
-import { fetchTopicNotes, fetchChatResponse, fetchFlashcards, fetchFlashcardsFromChat, fetchQuizQuestions, fetchReadingList, fetchWebSources, fetchVideoInsights } from "../services/notesApi.js";
+import { fetchTopicNotes, fetchChatResponse, fetchFlashcards, fetchQuizQuestions, fetchReadingList, fetchWebSources, fetchVideoInsights } from "../services/notesApi.js";
 import { fetchYoutubeVideos } from "../services/youtubeApi.js";
 import ReactMarkdown from "react-markdown";
 import {
-  LayoutDashboard,
   Lightbulb,
   PenTool,
   Layers,
@@ -38,8 +37,6 @@ const PANELS = [
   { id: "Reading List", name: "Reading List", icon: <BookOpen size={18} /> },
   { id: "Web Sources", name: "Web Sources", icon: <Globe size={18} /> }
 ];
-
-const API_URL = "http://localhost:5006/api/library";
 
 const CodeBlock = ({ inline, className, children, ...props }) => {
   const [copied, setCopied] = useState(false);
@@ -107,7 +104,7 @@ const BookCover = ({ book }) => {
 };
 
 function TopicPage({ topic, onBack, historyItem, onUpdateHistory, initialState }) {
-  const { token, logout } = useAuth();
+  const { token } = useAuth();
   const [activePanel, setActivePanel] = useState(initialState?.initialPanel || "AI Notes");
   const scrollerRef = useRef(null);
   const chatContainerRef = useRef(null);
@@ -197,7 +194,7 @@ function TopicPage({ topic, onBack, historyItem, onUpdateHistory, initialState }
       }
     }
     loadInitial();
-  }, [topic, historyItem?._id]); // Only re-run if topic or specific history record changes
+  }, [topic, historyItem, onUpdateHistory]); // Only re-run if topic or specific history record changes
 
   // Auto-save changes to history
   useEffect(() => {
@@ -212,7 +209,7 @@ function TopicPage({ topic, onBack, historyItem, onUpdateHistory, initialState }
       }, 2000); // Debounce save
       return () => clearTimeout(timeout);
     }
-  }, [notes, chatMessages, flashcards, quizzes]);
+  }, [notes, chatMessages, flashcards, quizzes, onUpdateHistory]);
 
   // Load Panel Data on demand (YouTube, Reading List, etc.)
   useEffect(() => {
@@ -260,7 +257,7 @@ function TopicPage({ topic, onBack, historyItem, onUpdateHistory, initialState }
         setWebSourcesLoading(false);
       });
     }
-  }, [activePanel, topic, notes, videos.length, readingList, webSources, flashcards, quizzes, flashcardsLoading, quizzesLoading, readingListLoading, webSourcesLoading]);
+  }, [activePanel, topic, notes, videos.length, readingList, webSources, flashcards, quizzes, flashcardsLoading, quizzesLoading, readingListLoading, webSourcesLoading, videoError]);
 
   useEffect(() => {
     if (chatContainerRef.current) {
@@ -1010,7 +1007,7 @@ const VideoAnalysisMode = ({ video, onClose, topicNotes, topicSummary, onSave })
     }
     
     getSpecificInsights();
-  }, [video?.id, video.title, video.channel]);
+  }, [video, topicNotes]);
   
   // Auto-scroll to bottom of notes
   useEffect(() => {
@@ -1040,7 +1037,7 @@ const VideoAnalysisMode = ({ video, onClose, topicNotes, topicSummary, onSave })
     }, 2000);
 
     return () => clearTimeout(initialTimeout);
-  }, [video?.id]); // ONLY trigger on video change
+  }, [video, topicNotes]); // ONLY trigger on video change
 
   // Main Effect 2: Playback-Synced Pulse (Responsive to Pause/Play)
   useEffect(() => {
@@ -1084,13 +1081,11 @@ const VideoAnalysisMode = ({ video, onClose, topicNotes, topicSummary, onSave })
     }, 18000); 
 
     return () => clearInterval(pulseInterval);
-  }, [video?.id, isPlaying, streamedNotes.length > 0]); // Trigger when playback changes
+  }, [video, isPlaying, streamedNotes.length, topicNotes]); // Trigger when playback changes
 
   if (!video) return null;
 
   const videoId = video.id;
-  const origin = window.location.origin;
-  const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&enablejsapi=1&origin=${origin}&widget_referrer=${origin}`;
   const shareUrl = `https://www.youtube.com/watch?v=${videoId}`;
 
   const handleShare = () => {

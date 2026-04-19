@@ -49,17 +49,7 @@ function AppContent() {
   const [initialTopicState, setInitialTopicState] = useState(null);
 
   // Fetch history on mount / Reset state on logout
-  useEffect(() => {
-    if (isAuthenticated) {
-      fetchHistory();
-    } else {
-      setView("landing");
-      setTopic("");
-      setActiveHistoryItem(null);
-    }
-  }, [isAuthenticated]);
-
-  const fetchHistory = async () => {
+  const fetchHistory = React.useCallback(async () => {
     const token = localStorage.getItem("auth_token");
     if (!token) return;
     try {
@@ -81,7 +71,41 @@ function AppContent() {
       console.error("Failed to fetch history Network Error:", err);
       alert("Note: History fetch network error. Check if server is on 5006.");
     }
-  };
+  }, [logout]);
+
+  const handleUpdateHistory = React.useCallback(async (topicName, updates) => {
+    const token = localStorage.getItem("auth_token");
+    if (!token) return;
+    try {
+      const url = activeHistoryItem ? `http://localhost:5006/api/history/${activeHistoryItem._id}` : "http://localhost:5006/api/history";
+      const method = activeHistoryItem ? "PUT" : "POST";
+
+      const res = await fetch(url, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ topic: topicName, ...updates }),
+      });
+      if (res.ok) {
+        const updatedItem = await res.json();
+        setAllHistory(prev => prev.map(h => h._id === updatedItem._id ? updatedItem : h));
+      }
+    } catch (err) {
+      console.error("Failed to update history:", err);
+    }
+  }, [activeHistoryItem]);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchHistory();
+    } else {
+      setView("landing");
+      setTopic("");
+      setActiveHistoryItem(null);
+    }
+  }, [isAuthenticated, fetchHistory]);
 
   if (loading) return <div className="loading-screen">Loading...</div>;
 
@@ -95,7 +119,6 @@ function AppContent() {
     // Only load from cache if the history item was explicitly passed (e.g., clicked from the Sidebar history list).
     // If it came from a Search submission, we force a completely fresh API generation.
     const existing = historyItem;
-    const manualExistingSearch = allHistory.find(h => h.topic.toLowerCase() === newTopic.toLowerCase());
 
     setTopic(newTopic);
     setView("topic");
@@ -144,55 +167,6 @@ function AppContent() {
     } catch (err) {
       console.error("Failed to save history Network Error:", err);
       alert("Note: Save search network error.");
-    }
-  };
-
-  const handleUpdateHistoryContent = async (id, content, suggestions) => {
-    const token = localStorage.getItem("auth_token");
-    if (!token) return;
-    try {
-      const res = await fetch(`http://localhost:5006/api/history/${id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ content, suggestions }),
-      });
-      if (res.status === 401 || res.status === 403) {
-        logout();
-        return;
-      }
-      if (res.ok) {
-        const updatedItem = await res.json();
-        setAllHistory(prev => prev.map(h => h._id === id ? updatedItem : h));
-      }
-    } catch (err) {
-      console.error("Failed to update history content", err);
-    }
-  };
-
-  const handleUpdateHistory = async (topicName, updates) => {
-    const token = localStorage.getItem("auth_token");
-    if (!token) return;
-    try {
-      const url = activeHistoryItem ? `http://localhost:5006/api/history/${activeHistoryItem._id}` : "http://localhost:5006/api/history";
-      const method = activeHistoryItem ? "PUT" : "POST";
-
-      const res = await fetch(url, {
-        method,
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ topic: topicName, ...updates }),
-      });
-      if (res.ok) {
-        const updatedItem = await res.json();
-        setAllHistory(prev => prev.map(h => h._id === updatedItem._id ? updatedItem : h));
-      }
-    } catch (err) {
-      console.error("Failed to update history:", err);
     }
   };
 

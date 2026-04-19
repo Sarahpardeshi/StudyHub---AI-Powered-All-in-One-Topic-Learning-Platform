@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import "./Sidebar.css";
 import { useAuth } from "../context/AuthContext.js";
-import { Plus, ChevronLeft, Clock, MoreHorizontal, Menu, LogOut } from "lucide-react";
+import { Plus, Clock, MoreHorizontal, Menu, LogOut } from "lucide-react";
 
 // A simple fetch for history - in a real app, maybe extract to a hook
 const API_URL = "http://localhost:5006/api";

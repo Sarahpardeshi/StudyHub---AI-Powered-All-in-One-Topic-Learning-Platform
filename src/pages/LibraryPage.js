@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext.js";
 import ReactMarkdown from "react-markdown";
 import {
-    LayoutGrid,
     Lightbulb,
     FileText,
     Video,
@@ -29,7 +28,6 @@ function LibraryPage() {
     const { token, logout } = useAuth();
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
     const [filter, setFilter] = useState("All");
     const [viewMode, setViewMode] = useState("grid"); // grid or list
 
@@ -39,13 +37,7 @@ function LibraryPage() {
     const [selectedQuiz, setSelectedQuiz] = useState(null);
     const [toastMessage, setToastMessage] = useState(null);
 
-    useEffect(() => {
-        if (token) {
-            fetchLibrary();
-        }
-    }, [token]);
-
-    const fetchLibrary = async () => {
+    const fetchLibrary = React.useCallback(async () => {
         try {
             const response = await fetch(API_URL, {
                 headers: { Authorization: `Bearer ${token}` },
@@ -58,11 +50,17 @@ function LibraryPage() {
             const data = await response.json();
             setItems(data);
         } catch (err) {
-            setError(err.message);
+            console.error(err.message);
         } finally {
             setLoading(false);
         }
-    };
+    }, [token, logout]);
+
+    useEffect(() => {
+        if (token) {
+            fetchLibrary();
+        }
+    }, [token, fetchLibrary]);
 
     const handleDelete = async (e, id) => {
         e.stopPropagation();
